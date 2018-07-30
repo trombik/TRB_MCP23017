@@ -58,6 +58,10 @@ TEST_CASE("mcp23017_get_i2c_port", component)
 TEST_CASE("mcp23017_read8", component)
 {
 	TEST_ASSERT_NOT_NULL(mcp = mcp23017_new());
+	mcp->i2c_config->address = MCP23017_I2C_ADDRESS_DEFAULT;
+	mcp->i2c_config->scl = GPIO_SCL;
+	mcp->i2c_config->sda = GPIO_SDA;
+	mcp->i2c_config->i2c_port = I2C_NUM_0;
 	TEST_ASSERT_EQUAL_INT32(0, i2c_init());
 	TEST_ASSERT_EQUAL_INT32(0, mcp23017_read8(mcp, MCP23x17_IODIRA, &reg_value));
 	TEST_ASSERT_EQUAL_INT8_MESSAGE(0xff, reg_value, "MCP23x17_IODIRA has default value");
@@ -68,6 +72,10 @@ TEST_CASE("mcp23017_read8", component)
 TEST_CASE("output", component)
 {
 	TEST_ASSERT_NOT_NULL(mcp = mcp23017_new());
+	mcp->i2c_config->address = MCP23017_I2C_ADDRESS_DEFAULT;
+	mcp->i2c_config->scl = GPIO_SCL;
+	mcp->i2c_config->sda = GPIO_SDA;
+	mcp->i2c_config->i2c_port = I2C_NUM_0;
 	TEST_ASSERT_EQUAL_INT32(0, i2c_init());
 	TEST_ASSERT_EQUAL_INT32(0, mcp->set_pin_direction(mcp, 0, INPUT_PULLUP));
 	TEST_ASSERT_EQUAL_INT32(0, mcp->set_pin_direction(mcp, 0, OUTPUT));
