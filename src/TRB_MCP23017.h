@@ -15,6 +15,8 @@
 #define LOW	0x0
 #endif
 
+#define MCP23017_I2C_ADDRESS_DEFAULT    (0x20)
+
 /*
  * \brief I2C configuration
  */
