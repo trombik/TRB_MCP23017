@@ -1,0 +1,42 @@
+language: python
+python:
+  - "2.7"
+sudo: false
+cache:
+  directories:
+    - "~/.platformio"
+env:
+  IDF_PATH: ~/esp-idf
+
+addons:
+  apt:
+    packages:
+      - cppcheck
+      - make
+      - wget
+      - libncurses-dev
+      - flex
+      - bison
+      - gperf
+      - python-serial
+
+install:
+  - pip install -U platformio
+  # needs the latest pio for the following issue
+  # https://github.com/platformio/platformio-core/issues/1735
+  - pio upgrade --dev
+  - pio update
+
+before_script:
+  - wget https://dl.espressif.com/dl/xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
+  - tar -xf xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
+  - export PATH="$PATH:$PWD/xtensa-esp32-elf/bin"
+  - git --version
+  - git clone --recurse-submodules --single-branch -b v3.2-dev https://github.com/espressif/esp-idf.git ~/esp-idf
+
+script:
+  - cppcheck --error-exitcode=1 --enable=warning,style,performance,portability -v --language=c src main
+  - make defconfig
+  - make
+    #  - PLATFORMIO_CI_SRC=examples/arduino_wire/src pio ci --lib . --project-conf examples/arduino_wire/platformio.ini
+    #  - PLATFORMIO_CI_SRC=examples/esp_idf/src pio ci --lib . --project-conf examples/esp_idf/platformio.ini
