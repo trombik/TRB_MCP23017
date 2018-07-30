@@ -1,0 +1,2 @@
+COMPONENT_ADD_INCLUDEDIRS := src
+COMPONENT_SRCDIRS := src src/sys/esp_idf
