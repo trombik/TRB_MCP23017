@@ -24,8 +24,6 @@ mcp23017_init(struct mcp23017_cxt_t *ctx)
 	memset(i2c_config, 0, sizeof(struct mcp23017_i2c_t));
 	ctx->i2c_config = i2c_config;
 	ctx->err_str = NULL;
-	ctx->set_pin_direction = mcp23017_set_pin_direction;
-	ctx->set_pin_level = mcp23017_set_pin_level;
 	r = 0;
 fail:
 	return r;
