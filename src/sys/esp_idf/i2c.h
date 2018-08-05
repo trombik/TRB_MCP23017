@@ -6,6 +6,6 @@
 i2c_port_t
 mcp23017_get_i2c_port();
 
-void
+i2c_port_t
 mcp23017_set_i2c_port(i2c_port_t port);
 #endif
