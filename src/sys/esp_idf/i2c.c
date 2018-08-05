@@ -15,21 +15,23 @@ mcp23017_get_i2c_port()
 	return port;
 }
 
-void
+i2c_port_t
 mcp23017_set_i2c_port(i2c_port_t p)
 {
 	port = p;
-	return;
+	return port;
 }
 
 int32_t
 mcp23017_read8(struct mcp23017_cxt_t *ctx, const uint8_t reg, uint8_t *value)
 {
-	int32_t r;
+	int32_t r = 0;
 	i2c_cmd_handle_t command;
 	command = i2c_cmd_link_create();
-	if ((r = i2c_master_start(command)) != ESP_OK)
+	if ((r = i2c_master_start(command)) != ESP_OK) {
+		ctx->err_str = (char *)"Failed to i2c_master_start()";
 		goto fail;
+	}
 	if ((r = i2c_master_write_byte( command, (ctx->i2c_config->address << 1) | I2C_MASTER_WRITE, ACK_CHECK_ENABLE)) != ESP_OK) {
 		ctx->err_str = (char *)"Failed to i2c_master_write_byte()";
 		goto fail;
@@ -55,15 +57,21 @@ mcp23017_read8(struct mcp23017_cxt_t *ctx, const uint8_t reg, uint8_t *value)
 		goto fail;
 	}
 
-	r = i2c_master_cmd_begin(port, command, 10 / portTICK_PERIOD_MS);
+	r = i2c_master_cmd_begin(mcp23017_get_i2c_port(), command, 10 / portTICK_PERIOD_MS);
+	if (r != ESP_OK) {
+		ctx->err_str = (char *)"Failed to i2c_master_cmd_begin()";
+	}
 fail:
 	i2c_cmd_link_delete(command);
-	if (r != 0)
+	if (r != 0 && ctx->err_str != NULL) {
 #if defined(HAVE_ESP_ERR_TO_NAME)
 		ESP_LOGE(__func__, "%s: %s", ctx->err_str, esp_err_to_name(r));
 #else
 		ESP_LOGE(__func__, "%s: %d", ctx->err_str, r);
 #endif
+	} else if (r != 0) {
+		ESP_LOGE(__func__, "%d", r);
+	}
 	return r;
 }
 
@@ -100,12 +108,14 @@ mcp23017_write8(struct mcp23017_cxt_t *ctx, const uint8_t reg, uint8_t value)
 	}
 fail:
 	i2c_cmd_link_delete(command);
-	if (r != 0) {
+	if (r != 0 && ctx->err_str != NULL) {
 #if defined(HAVE_ESP_ERR_TO_NAME)
-		ESP_LOGE(__func__, "%s: %s", ctx->err_str, esp_err_to_name(r));
+			ESP_LOGE(__func__, "%s: %s", ctx->err_str, esp_err_to_name(r));
 #else
-		ESP_LOGE(__func__, "%s: %d", ctx->err_str, r);
+			ESP_LOGE(__func__, "%s: %d", ctx->err_str, r);
 #endif
+	} else if (r != 0) {
+		ESP_LOGE(__func__, "%d", r);
 	}
 	return r;
 }
