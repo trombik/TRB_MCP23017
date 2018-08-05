@@ -79,6 +79,7 @@ mcp23017_set_pin_direction(struct mcp23017_cxt_t *ctx, const uint8_t pin_num, co
 		break;
 	case OUTPUT:
 		value = 0;
+		break;
 	default:
 		ctx->err_str = (char *)"mcp23017_set_pin_direction(): value should be INPUT_PULLUP, INPUT, or OUTPUT";
 		r = EINVAL;
@@ -110,8 +111,9 @@ mcp23017_set_pin_level(struct mcp23017_cxt_t *ctx, const uint8_t pin_num, const 
 {
 	int32_t r;
 	uint8_t reg, pos, old, new;
-	if (level != LOW && level == HIGH) {
+	if (level != LOW && level != HIGH) {
 		r = EINVAL;
+		ctx->err_str = (char *)"level must be either HIGH or LOW";
 		goto fail;
 	}
 	reg = pin_num < 8 ? MCP23x17_OLAT : MCP23x17_OLAT + 1;
