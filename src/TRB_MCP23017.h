@@ -36,12 +36,6 @@ struct mcp23017_i2c_t
 
 struct mcp23017_cxt_t; // dummy
 
-typedef int32_t (*set_pin_direction_fptr_t)(struct mcp23017_cxt_t *ctx, const uint8_t pin_num, const uint8_t direction);
-typedef int32_t (*set_pin_level_fptr_t)(struct mcp23017_cxt_t *ctx, const uint8_t pin_num, const uint8_t level);
-
-typedef int32_t (*disable_pullup_fptr_t)(struct mcp23017_cxt_t *ctx, const uint8_t pin_num);
-typedef int32_t ( *enable_pullup_fptr_t)(struct mcp23017_cxt_t *ctx, const uint8_t pin_num);
-
 /*
  * \brief MCP23017 context
  */
@@ -51,14 +45,6 @@ struct mcp23017_cxt_t
 	struct mcp23017_i2c_t *i2c_config;
 	/** Error message of the last error */
 	char *err_str;
-	/** Set pin direction, INPUT_PULLUP, INPUT, or OUTPUT) */
-	set_pin_direction_fptr_t set_pin_direction;
-	/** Set pin level */
-	set_pin_level_fptr_t set_pin_level;
-    /** mcp23017_disable_pullup */
-    disable_pullup_fptr_t mcp23017_disable_pullup;
-    /** mcp23017_enable_pullup */
-    enable_pullup_fptr_t mcp23017_enable_pullup;
 };
 
 /*
