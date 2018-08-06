@@ -3,7 +3,7 @@
 #include "TRB_MCP23X17.h"
 
 #if defined(TRB_MCP23017_ESP_IDF)
-#include "sys/esp_idf/i2c.h"
+#include <driver/i2c.h>
 #endif
 
 #if !defined(ARDUINO)
@@ -20,7 +20,7 @@
 /*
  * \brief I2C configuration
  */
-struct mcp23017_i2c_t
+typedef struct
 {
 	/** I2C SCL pin number */
 	uint8_t scl;
@@ -32,75 +32,61 @@ struct mcp23017_i2c_t
 	uint16_t speed;
 	/** I2C port number (ESP32 only) */
 	uint8_t i2c_port;
-};
-
-struct mcp23017_cxt_t; // dummy
+} mcp23017_i2c_config_t;
 
 /*
- * \brief MCP23017 context
- */
-struct mcp23017_cxt_t
-{
-	/** I2C config */
-	struct mcp23017_i2c_t *i2c_config;
-	/** Error message of the last error */
-	char *err_str;
-};
-
-/*
- * \brief Create device context
+ * \brief Initialize the driver
  *
- * \return pointer to mcp23017_cxt_t, or NULL on failure.
+ * \return : zero on success. ENOMEM on out of memory.
  */
-struct mcp23017_cxt_t *
-mcp23017_new(void);
+int8_t
+mcp23017_init();
 
 /*
- * \brief Free device context
+ * \brief Free the driver.
  */
 void
-mcp23017_free(struct mcp23017_cxt_t *ctx);
+mcp23017_free();
+
+int8_t
+mcp23017_set_i2c_config(const mcp23017_i2c_config_t *new);
 
 /*
  * \brief Set directon of a PIN
  *
- * \param ctx : Pointer to mcp23017_cxt_t
  * \param pin_num : Pin number, starting from zero (GPA0, or physical pin 21) to
  * 15 (GPB7, or physical pin 8).
  * \param directon : Direction of the pin, INPUT, INPUT_PULLUP, or OUTPUT.
  * \return zero on success, non-zero on failure
  */
 int32_t
-mcp23017_set_pin_direction(struct mcp23017_cxt_t *ctx, const uint8_t pin_num, const uint8_t direction);
+mcp23017_set_pin_direction(const uint8_t pin_num, const uint8_t direction);
 
 /*
  * \brief Set level of a pin
  *
- * \param ctx : Pointer to mcp23017_cxt_t
  * \param pin_num : Pin number, starting from zero to 15.
  * \param level : HIGH or LOW.
  * \return zero on success, non-zero on failure.
  */
 int32_t
-mcp23017_set_pin_level(struct mcp23017_cxt_t *ctx, const uint8_t pin_num, const uint8_t level);
+mcp23017_set_pin_level(const uint8_t pin_num, const uint8_t level);
 
 /*
  * \brief Disable pullup on a pin
  *
- * \param ctx : Pointer to mcp23017_cxt_t
  * \param pin_num : Pin number
  */
 int32_t
-mcp23017_disable_pullup(struct mcp23017_cxt_t *ctx, const uint8_t pin_num);
+mcp23017_disable_pullup(const uint8_t pin_num);
 
 /*
  * \brief Enable pullup on a pin
  *
- * \param ctx : Pointer to mcp23017_cxt_t
  * \param pin_num : Pin number
  */
 int32_t
-mcp23017_enable_pullup(struct mcp23017_cxt_t *ctx, const uint8_t pin_num);
+mcp23017_enable_pullup(const uint8_t pin_num);
 
 /*
  * \brief Read a byte from a register
@@ -108,7 +94,7 @@ mcp23017_enable_pullup(struct mcp23017_cxt_t *ctx, const uint8_t pin_num);
  * \return zero on success, non-zero on failure
  */
 int32_t
-mcp23017_read8(struct mcp23017_cxt_t *ctx, const uint8_t reg, uint8_t *value);
+mcp23017_read8(const uint8_t reg, uint8_t *value);
 
 /*
  * \brief Write a byte to a register
@@ -116,6 +102,24 @@ mcp23017_read8(struct mcp23017_cxt_t *ctx, const uint8_t reg, uint8_t *value);
  * \return zero on success, non-zero on failure
  */
 int32_t
-mcp23017_write8(struct mcp23017_cxt_t *ctx, const uint8_t reg, uint8_t value);
+mcp23017_write8(const uint8_t reg, uint8_t value);
+
+/*
+ * \brief Returns configured I2C address
+ *
+ * \return I2C address
+ */
+uint16_t
+mcp23017_get_i2c_address();
+
+#if defined(TRB_MCP23017_ESP_IDF)
+/*
+ * \brief Return I2C port number (ESP32 only)
+ *
+ * \return i2c_port_t number
+ */
+i2c_port_t
+mcp23017_get_i2c_port();
+#endif
 
 #endif // !defined(_TRB_MCP23017_h)
