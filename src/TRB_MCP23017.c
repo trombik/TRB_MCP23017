@@ -2,57 +2,63 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include "TRB_MCP23017.h"
 
 #if defined(TRB_MCP23017_ESP_IDF)
-#include "sys/esp_idf/i2c.h"
+/* required for i2c_port_t */
+#include <driver/i2c.h>
 #endif
 
+#include "TRB_MCP23017.h"
+
+typedef struct
+{
+	mcp23017_i2c_config_t *i2c_config;
+} mcp23017_config_t;
+
+static mcp23017_config_t *config;
+
 int8_t
-mcp23017_init(struct mcp23017_cxt_t *ctx)
+mcp23017_init()
 {
 	int8_t r;
-	if (ctx == NULL) {
-		r = EINVAL;
-		goto fail;
-	}
-	struct mcp23017_i2c_t *i2c_config = (struct mcp23017_i2c_t *)malloc(sizeof(struct mcp23017_i2c_t));
-	if (i2c_config == NULL) {
+	config = calloc(1, sizeof(mcp23017_config_t));
+	if (config == NULL) {
 		r = ENOMEM;
-		goto fail;
+		goto calloc_fail;
 	}
-	memset(i2c_config, 0, sizeof(struct mcp23017_i2c_t));
-	ctx->i2c_config = i2c_config;
-	ctx->err_str = NULL;
+	config->i2c_config = calloc(1, sizeof(mcp23017_i2c_config_t));
+	if (config->i2c_config == NULL) {
+		free(config);
+		config = NULL;
+		r = ENOMEM;
+		goto calloc_fail;
+	}
 	r = 0;
-fail:
+calloc_fail:
 	return r;
 }
 
-struct mcp23017_cxt_t *
-mcp23017_new(void)
+void
+mcp23017_free()
 {
-	struct mcp23017_cxt_t *ctx = (struct mcp23017_cxt_t *)malloc(sizeof(struct mcp23017_cxt_t));
-	if (ctx == NULL)
-		goto fail;
-	if (mcp23017_init(ctx) != 0) {
-		free(ctx);
-		ctx = NULL;
-		goto fail;
-	}
-fail:
-	return ctx;
+	free(config->i2c_config);
+	free(config);
+	config = NULL;
+	return;
 }
 
-void
-mcp23017_free(struct mcp23017_cxt_t *ctx)
+int8_t
+mcp23017_set_i2c_config(const mcp23017_i2c_config_t *new)
 {
-	if (ctx == NULL)
-		return;
-	if (ctx->i2c_config != NULL)
-		free(ctx->i2c_config);
-	free(ctx);
-	return;
+	int8_t r;
+	if (new == NULL) {
+		r = EINVAL;
+		goto fail;
+	}
+	*(config->i2c_config) = *new;
+	r = 0;
+fail:
+	return r;
 }
 
 static uint8_t
@@ -62,7 +68,7 @@ bit_write8(const uint8_t old, const uint8_t pos, const uint8_t value)
 }
 
 int32_t
-mcp23017_set_pin_direction(struct mcp23017_cxt_t *ctx, const uint8_t pin_num, const uint8_t direction)
+mcp23017_set_pin_direction(const uint8_t pin_num, const uint8_t direction)
 {
 	int32_t r;
 	uint8_t reg, value, pos, old, new, enable_pullup;
@@ -79,24 +85,23 @@ mcp23017_set_pin_direction(struct mcp23017_cxt_t *ctx, const uint8_t pin_num, co
 		value = 0;
 		break;
 	default:
-		ctx->err_str = (char *)"mcp23017_set_pin_direction(): value should be INPUT_PULLUP, INPUT, or OUTPUT";
 		r = EINVAL;
 		goto fail;
 	}
 
 	reg = pin_num < 8 ? MCP23x17_IODIR : MCP23x17_IODIR + 1;
 	pos = pin_num < 8 ? pin_num : pin_num - 8;
-	if ((r = mcp23017_read8(ctx, reg, &old)) != 0) {
+	if ((r = mcp23017_read8(reg, &old)) != 0) {
 		goto fail;
 	}
 	new = bit_write8(old, pos, value);
 	if (new != old) {
-		if ((r = mcp23017_write8(ctx, reg, new)) != 0) {
+		if ((r = mcp23017_write8(reg, new)) != 0) {
 			goto fail;
 		}
 	}
 	if (enable_pullup == 1) {
-		if ((r = mcp23017_enable_pullup(ctx, pin_num)) != 0) {
+		if ((r = mcp23017_enable_pullup(pin_num)) != 0) {
 			goto fail;
 		}
 	}
@@ -105,23 +110,22 @@ fail:
 }
 
 int32_t
-mcp23017_set_pin_level(struct mcp23017_cxt_t *ctx, const uint8_t pin_num, const uint8_t level)
+mcp23017_set_pin_level(const uint8_t pin_num, const uint8_t level)
 {
 	int32_t r;
 	uint8_t reg, pos, old, new;
 	if (level != LOW && level != HIGH) {
 		r = EINVAL;
-		ctx->err_str = (char *)"level must be either HIGH or LOW";
 		goto fail;
 	}
 	reg = pin_num < 8 ? MCP23x17_OLAT : MCP23x17_OLAT + 1;
 	pos = pin_num < 8 ? pin_num : pin_num - 8;
-	if ((r = mcp23017_read8(ctx, reg, &old)) != 0) {
+	if ((r = mcp23017_read8(reg, &old)) != 0) {
 		goto fail;
 	}
 	new = bit_write8(old, pos, level);
 	if (new != old) {
-		if ((r = mcp23017_write8(ctx, reg, new)) != 0)
+		if ((r = mcp23017_write8(reg, new)) != 0)
 			goto fail;
 	}
 fail:
@@ -129,18 +133,18 @@ fail:
 }
 
 static int32_t
-mcp23017_set_pullup_value(struct mcp23017_cxt_t *ctx, const uint8_t pin_num, const uint8_t value)
+mcp23017_set_pullup_value(const uint8_t pin_num, const uint8_t value)
 {
 	int32_t r;
 	uint8_t reg, pos, old, new;
 	reg = (pin_num < 8) ? MCP23x17_GPPU : MCP23x17_GPPU + 1;
 	pos = (pin_num < 8) ? pin_num : pin_num - 8;
-	if ((r = mcp23017_read8(ctx, reg, &old)) != 0) {
+	if ((r = mcp23017_read8(reg, &old)) != 0) {
 		goto fail;
 	}
 	new = bit_write8(old, pos, value & 1);
 	if (new != old) {
-		if ((r = mcp23017_write8(ctx, reg, new)) != 0) {
+		if ((r = mcp23017_write8(reg, new)) != 0) {
 			goto fail;
 		}
 	}
@@ -152,23 +156,35 @@ fail:
 /*
  * \brief Disable pullup on a pin
  *
- * \param ctx : Pointer to mcp23017_cxt_t
  * \param pin_num : Pin number
  */
 int32_t
-mcp23017_disable_pullup(struct mcp23017_cxt_t *ctx, const uint8_t pin_num)
+mcp23017_disable_pullup(const uint8_t pin_num)
 {
-	return mcp23017_set_pullup_value(ctx, pin_num, 0);
+	return mcp23017_set_pullup_value(pin_num, 0);
 }
 
 /*
  * \brief Enable pullup on a pin
  *
- * \param ctx : Pointer to mcp23017_cxt_t
  * \param pin_num : Pin number
  */
 int32_t
-mcp23017_enable_pullup(struct mcp23017_cxt_t *ctx, const uint8_t pin_num)
+mcp23017_enable_pullup(const uint8_t pin_num)
 {
-	return mcp23017_set_pullup_value(ctx, pin_num, 1);
+	return mcp23017_set_pullup_value(pin_num, 1);
 }
+
+uint16_t
+mcp23017_get_i2c_address()
+{
+	return config->i2c_config->address;
+}
+
+#if defined(TRB_MCP23017_ESP_IDF)
+i2c_port_t
+mcp23017_get_i2c_port()
+{
+	return config->i2c_config->i2c_port;
+}
+#endif
