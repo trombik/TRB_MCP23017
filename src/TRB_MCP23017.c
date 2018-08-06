@@ -41,7 +41,9 @@ calloc_fail:
 void
 mcp23017_free()
 {
-	free(config->i2c_config);
+	if (config != NULL) {
+		free(config->i2c_config);
+	}
 	free(config);
 	config = NULL;
 	return;
@@ -51,7 +53,7 @@ int8_t
 mcp23017_set_i2c_config(const mcp23017_i2c_config_t *new)
 {
 	int8_t r;
-	if (new == NULL) {
+	if (config == NULL || new == NULL) {
 		r = EINVAL;
 		goto fail;
 	}
