@@ -6,11 +6,11 @@ DEFINE_FAKE_VALUE_FUNC(int32_t, mcp23017_read8,  const uint8_t, uint8_t *);
 DEFINE_FAKE_VALUE_FUNC(int32_t, mcp23017_write8, const uint8_t, const uint8_t);
 
 /* pass faked register value by custom function */
-uint32_t
+int32_t
 mcp23017_read8_fake_custom_fake(const uint8_t reg, uint8_t *reg_value)
 {
 	*reg_value = faked_reg_value;
-	return faked_return_value != 0 ? faked_return_value : 0;
+	return faked_return_value;
 }
 
 uint8_t
