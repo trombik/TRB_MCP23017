@@ -7,9 +7,8 @@
 #include "TRB_MCP23017.h"
 
 static char component[] = "[TRB_MCP23017][mcp23017_set_pin_direction]";
-uint32_t r;
+int32_t r, faked_return_value;
 uint8_t faked_reg_value;
-uint32_t faked_return_value;
 
 /* setup fff */
 DEFINE_FFF_GLOBALS;
