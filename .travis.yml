@@ -39,4 +39,4 @@ script:
   - make defconfig
   - make
     #  - PLATFORMIO_CI_SRC=examples/arduino_wire/src pio ci --lib . --project-conf examples/arduino_wire/platformio.ini
-    #  - PLATFORMIO_CI_SRC=examples/esp_idf/src pio ci --lib . --project-conf examples/esp_idf/platformio.ini
+    - PLATFORMIO_CI_SRC=examples/esp_idf/src pio ci --lib . --project-conf examples/esp_idf/platformio.ini
