@@ -150,8 +150,8 @@ mcp23017_set_pullup_value(const uint8_t pin_num, const uint8_t value)
 			goto fail;
 		}
 	}
-fail:
 	r = 0;
+fail:
 	return r;
 }
 
