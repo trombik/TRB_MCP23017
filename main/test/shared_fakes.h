@@ -9,14 +9,14 @@ DECLARE_FAKE_VALUE_FUNC(int32_t, mcp23017_write8, const uint8_t, const uint8_t);
 
 /* set these to fake value from mcp23017_read8() */
 extern uint8_t faked_reg_value; /** faked value of register */
-extern uint32_t faked_return_value; /** faked return value of mcp23017_read8() */
+extern int32_t faked_return_value; /** faked return value of mcp23017_read8() */
 
 /*
  * \brief function to set faked register value in mcp23017_read8()
  *
  * mcp23017_read8_fake.custom_fake = mcp23017_read8_fake_custom_fake;
  */
-uint32_t
+int32_t
 mcp23017_read8_fake_custom_fake(const uint8_t reg, uint8_t *reg_value);
 
 /*
