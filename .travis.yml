@@ -35,8 +35,8 @@ before_script:
   - git clone --recurse-submodules --single-branch -b v3.2-dev https://github.com/espressif/esp-idf.git ~/esp-idf
 
 script:
-  - cppcheck --error-exitcode=1 --enable=warning,style,performance,portability -v --language=c src main
+  - cppcheck --error-exitcode=1 --enable=warning,style,performance,portability -v --language=c src main examples
   - make defconfig
   - make
-    #  - PLATFORMIO_CI_SRC=examples/arduino_wire/src pio ci --lib . --project-conf examples/arduino_wire/platformio.ini
-    #  - PLATFORMIO_CI_SRC=examples/esp_idf/src pio ci --lib . --project-conf examples/esp_idf/platformio.ini
+  #  - PLATFORMIO_CI_SRC=examples/arduino_wire/src pio ci --lib . --project-conf examples/arduino_wire/platformio.ini
+  - PLATFORMIO_CI_SRC=examples/esp_idf/src pio ci --lib . --project-conf examples/esp_idf/platformio.ini
