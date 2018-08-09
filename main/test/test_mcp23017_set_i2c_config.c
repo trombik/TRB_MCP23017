@@ -1,7 +1,7 @@
 #include <errno.h>
 #include <unity.h>
 
-#include "TRB_MCP23017.h"
+#include <TRB_MCP23017.h>
 
 static char component[] = "[TRB_MCP23017]";
 
