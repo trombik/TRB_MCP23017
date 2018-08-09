@@ -4,10 +4,10 @@
 #include <esp_err.h>
 #include <esp_log.h>
 #include <stdint.h>
-#include "unity.h"
+#include <unity.h>
 #include "../reset.h"
 
-#include "TRB_MCP23017.h"
+#include <TRB_MCP23017.h>
 
 #define GPA0	0 // physical pin 21 in DIP package, 8th from top on right side
 

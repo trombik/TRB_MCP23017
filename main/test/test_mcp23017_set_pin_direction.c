@@ -1,10 +1,10 @@
 #include <stdint.h>
 #include <errno.h>
-#include "unity.h"
+#include <unity.h>
 #include "../fff.h"
 #include "shared_fakes.h"
 
-#include "TRB_MCP23017.h"
+#include <TRB_MCP23017.h>
 
 static char component[] = "[TRB_MCP23017][mcp23017_set_pin_direction]";
 int32_t r, faked_return_value;
