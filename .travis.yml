@@ -6,6 +6,7 @@ cache:
   directories:
     - "~/.platformio"
     - "~/xtensa-esp32-elf"
+    - "~/esp-idf"
 env:
   IDF_PATH: ~/esp-idf
 
@@ -33,7 +34,7 @@ before_script:
   - export PATH="$PATH:${HOME}/xtensa-esp32-elf/bin"
   - echo $PATH
   - git --version
-  - git clone --recurse-submodules --single-branch -b v3.2-dev https://github.com/espressif/esp-idf.git ~/esp-idf
+  - if [ ! -e ~/esp-idf/LICENSE ]; then git clone --recurse-submodules --single-branch -b v3.2-dev https://github.com/espressif/esp-idf.git ~/esp-idf ;fi
 
 script:
   - cppcheck --error-exitcode=1 --enable=warning,style,performance,portability -v --language=c src main examples
