@@ -1,0 +1,14 @@
+{
+    "name": "TRB_MCP23017",
+    "platforms": [
+        "espressif32"
+    ],
+    "frameworks": [
+        "espidf"
+    ],
+    "build": {
+        "extraScript": "prebuild.py"
+    },
+    "dependencies": [
+    ]
+}
