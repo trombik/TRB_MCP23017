@@ -43,8 +43,9 @@ fail:
 void
 task_blink(void *pvParameters)
 {
-	int32_t err;
+	uint8_t reg_value;
 	uint8_t level = 0;
+	int32_t err;
 	config.scl = GPIO_SCL;
 	config.sda = GPIO_SDA;
 	config.address = MCP23017_I2C_ADDRESS_DEFAULT;
@@ -68,6 +69,16 @@ task_blink(void *pvParameters)
 		goto fail;
 	}
 
+	ESP_LOGI(__func__, "Read IODIRA.");
+	if ((err = mcp23017_read8(MCP23x17_IODIRA, &reg_value)) != 0) {
+		ESP_LOGE(__func__, "mcp23017_read8(): %d", err);
+		goto fail;
+	}
+	if (reg_value != 0xff) {
+		err = -1;
+		ESP_LOGE(__func__, "IODIRA: %d", reg_value);
+		goto fail;
+	}
 	for (uint8_t pin = 0; pin <= 7; pin++) {
 		ESP_LOGI(__func__, "Set pin %d to OUTPUT", pin);
 		err = mcp23017_set_pin_direction(pin, OUTPUT);
@@ -109,9 +120,9 @@ app_main(void)
 	io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
 	io_conf.intr_type = GPIO_INTR_DISABLE;
 	gpio_config(&io_conf);
-	gpio_set_level(RESET_PIN, HIGH);
-	vTaskDelay(100 / portTICK_PERIOD_MS);
 	gpio_set_level(RESET_PIN, LOW);
+	vTaskDelay(100 / portTICK_PERIOD_MS);
+	gpio_set_level(RESET_PIN, HIGH);
 
 	/* create the task */
 	xTaskCreate(
