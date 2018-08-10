@@ -18,6 +18,9 @@
  * \brief Register addresses (IOCON_BANK_MODE == 0, i.e. addresses are
  * sequential, which is the default)
  */
+#if !defined(_TRB_MCP23X17_h)
+#define _TRB_MCP23X17_h
+
 #define	MCP23x17_IODIR		(0x00)
 #define	MCP23x17_IPOL		(0x02)
 #define	MCP23x17_GPINTEN	(0x04)
@@ -73,3 +76,5 @@
 #define	IOCON_SEQOP_ENABLED	(0)
 /** Sequential operation disabled, address pointer does not increments. */
 #define	IOCON_SEQOP_DISABLED	(1)
+
+#endif
