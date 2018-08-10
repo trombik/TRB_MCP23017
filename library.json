@@ -1,14 +1,34 @@
 {
     "name": "TRB_MCP23017",
-    "platforms": [
-        "espressif32"
-    ],
+    "description": "C driver for MCP23017",
+    "keywords": "mcp23017,esp-idf,esp32",
+    "authors": {
+        "name": "Tomoyuki Sakurai",
+        "email": "y@trombik.org",
+        "url": "http://www.trombik.org",
+        "maintainer": true
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/trombik/TRB_MCP23017.git"
+    },
+    "license": "ISC",
+    "export": {
+        "exclude": [ "docs" ]
+    },
     "frameworks": [
         "espidf"
+    ],
+    "platforms": [
+        "espressif32"
     ],
     "build": {
         "extraScript": "prebuild.py"
     },
     "dependencies": [
+    ],
+    "examples": [
+        "examples/*/src/*.c",
+        "examples/*/src/*.ino"
     ]
 }
