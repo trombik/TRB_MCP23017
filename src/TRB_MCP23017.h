@@ -15,6 +15,7 @@
  */
 
 #if !defined(_TRB_MCP23017_h)
+#define _TRB_MCP23017_h
 
 #include "TRB_MCP23X17.h"
 
