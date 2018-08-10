@@ -24,7 +24,7 @@ i2c_init()
 	i2c_config.scl_io_num = config.scl;
 	i2c_config.sda_pullup_en = GPIO_PULLUP_DISABLE;
 	i2c_config.scl_pullup_en = GPIO_PULLUP_DISABLE;
-	i2c_config.master.clk_speed = config.speed;
+	i2c_config.master.clk_speed = 100000L;
 
 	if ((r = i2c_param_config(config.i2c_port, &i2c_config)) != 0) {
 		ESP_LOGE(__func__, "i2c_param_config(): %d", r);
@@ -107,6 +107,7 @@ app_main(void)
 	io_conf.pin_bit_mask = (1 << RESET_PIN);
 	io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
 	io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+	io_conf.intr_type = GPIO_INTR_DISABLE;
 	gpio_config(&io_conf);
 	gpio_set_level(RESET_PIN, HIGH);
 	vTaskDelay(100 / portTICK_PERIOD_MS);
