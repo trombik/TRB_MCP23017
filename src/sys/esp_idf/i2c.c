@@ -56,6 +56,7 @@ mcp23017_read8(const uint8_t reg, uint8_t *value)
 
 	r = i2c_master_cmd_begin(mcp23017_get_i2c_port(), command, 10 / portTICK_PERIOD_MS);
 	if (r != ESP_OK) {
+		ESP_LOGE(__func__, "i2c_master_cmd_begin(): %d", r);
 	}
 fail:
 	i2c_cmd_link_delete(command);
@@ -87,6 +88,7 @@ mcp23017_write8(const uint8_t reg, uint8_t value)
 		goto fail;
 	}
 	if ((r = i2c_master_cmd_begin(mcp23017_get_i2c_port(), command, 10 / portTICK_PERIOD_MS)) != ESP_OK) {
+		ESP_LOGE(__func__, "i2c_master_cmd_begin(): %d", r);
 		goto fail;
 	}
 fail:
