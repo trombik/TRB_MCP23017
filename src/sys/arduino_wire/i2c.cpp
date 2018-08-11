@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <errno.h>
+#include "TRB_MCP23017.h"
 
 #define WITH_REPEATED_START	false
 

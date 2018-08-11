@@ -30,10 +30,6 @@
 
 #include "TRB_MCP23017.h"
 
-#if defined(TRB_MCP23017_ESP_IDF)
-#include "sys/esp_idf/i2c.c"
-#endif
-
 #if defined(__cplusplus)
 extern "C" {
 #endif
