@@ -17,6 +17,7 @@
 #if !defined(_TRB_MCP23017_h)
 #define _TRB_MCP23017_h
 
+#include <stdint.h>
 #include "TRB_MCP23X17.h"
 
 #if defined(TRB_MCP23017_ESP_IDF)
@@ -27,12 +28,16 @@
 #define INPUT		0x0
 #define OUTPUT		0x1
 #define INPUT_PULLUP	0x2
+#endif
 
 #define HIGH	0x1
 #define LOW	0x0
-#endif
 
 #define MCP23017_I2C_ADDRESS_DEFAULT    (0x20)
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 /*
  * \brief I2C configuration
@@ -66,7 +71,7 @@ void
 mcp23017_free();
 
 int8_t
-mcp23017_set_i2c_config(const mcp23017_i2c_config_t *new);
+mcp23017_set_i2c_config(const mcp23017_i2c_config_t *new_config);
 
 /*
  * \brief Set directon of a PIN
@@ -137,6 +142,10 @@ mcp23017_get_i2c_address();
  */
 i2c_port_t
 mcp23017_get_i2c_port();
+#endif
+
+#if defined(__cplusplus)
+}
 #endif
 
 #endif // !defined(_TRB_MCP23017_h)

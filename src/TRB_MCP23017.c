@@ -22,9 +22,21 @@
 #if defined(TRB_MCP23017_ESP_IDF)
 /* required for i2c_port_t */
 #include <driver/i2c.h>
-#endif
+#endif // defined(TRB_MCP23017_ESP_IDF)
+
+#if defined(ARDUINO)
+#include <Arduino.h>
+#endif // defined(ARDUINO)
 
 #include "TRB_MCP23017.h"
+
+#if defined(TRB_MCP23017_ESP_IDF)
+#include "sys/esp_idf/i2c.c"
+#endif
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 typedef struct
 {
@@ -37,12 +49,12 @@ int8_t
 mcp23017_init()
 {
 	int8_t r;
-	config = calloc(1, sizeof(mcp23017_config_t));
+	config = (mcp23017_config_t *)calloc(1, sizeof(mcp23017_config_t));
 	if (config == NULL) {
 		r = ENOMEM;
 		goto calloc_fail;
 	}
-	config->i2c_config = calloc(1, sizeof(mcp23017_i2c_config_t));
+	config->i2c_config = (mcp23017_i2c_config_t *)calloc(1, sizeof(mcp23017_i2c_config_t));
 	if (config->i2c_config == NULL) {
 		free(config);
 		config = NULL;
@@ -66,14 +78,14 @@ mcp23017_free()
 }
 
 int8_t
-mcp23017_set_i2c_config(const mcp23017_i2c_config_t *new)
+mcp23017_set_i2c_config(const mcp23017_i2c_config_t *new_config)
 {
 	int8_t r;
-	if (config == NULL || new == NULL) {
+	if (config == NULL || new_config == NULL) {
 		r = EINVAL;
 		goto fail;
 	}
-	*(config->i2c_config) = *new;
+	*(config->i2c_config) = *new_config;
 	r = 0;
 fail:
 	return r;
@@ -89,7 +101,7 @@ int32_t
 mcp23017_set_pin_direction(const uint8_t pin_num, const uint8_t direction)
 {
 	int32_t r;
-	uint8_t reg, value, pos, old, new, enable_pullup;
+	uint8_t reg, value, pos, old, new_value, enable_pullup;
 
 	enable_pullup = 0;
 	switch (direction) {
@@ -112,9 +124,9 @@ mcp23017_set_pin_direction(const uint8_t pin_num, const uint8_t direction)
 	if ((r = mcp23017_read8(reg, &old)) != 0) {
 		goto fail;
 	}
-	new = bit_write8(old, pos, value);
-	if (new != old) {
-		if ((r = mcp23017_write8(reg, new)) != 0) {
+	new_value = bit_write8(old, pos, value);
+	if (new_value != old) {
+		if ((r = mcp23017_write8(reg, new_value)) != 0) {
 			goto fail;
 		}
 	}
@@ -131,7 +143,7 @@ int32_t
 mcp23017_set_pin_level(const uint8_t pin_num, const uint8_t level)
 {
 	int32_t r;
-	uint8_t reg, pos, old, new;
+	uint8_t reg, pos, old, new_value;
 	if (level != LOW && level != HIGH) {
 		r = EINVAL;
 		goto fail;
@@ -141,9 +153,9 @@ mcp23017_set_pin_level(const uint8_t pin_num, const uint8_t level)
 	if ((r = mcp23017_read8(reg, &old)) != 0) {
 		goto fail;
 	}
-	new = bit_write8(old, pos, level);
-	if (new != old) {
-		if ((r = mcp23017_write8(reg, new)) != 0)
+	new_value = bit_write8(old, pos, level);
+	if (new_value != old) {
+		if ((r = mcp23017_write8(reg, new_value)) != 0)
 			goto fail;
 	}
 fail:
@@ -154,15 +166,15 @@ static int32_t
 mcp23017_set_pullup_value(const uint8_t pin_num, const uint8_t value)
 {
 	int32_t r;
-	uint8_t reg, pos, old, new;
+	uint8_t reg, pos, old, new_value;
 	reg = (pin_num < 8) ? MCP23x17_GPPU : MCP23x17_GPPU + 1;
 	pos = (pin_num < 8) ? pin_num : pin_num - 8;
 	if ((r = mcp23017_read8(reg, &old)) != 0) {
 		goto fail;
 	}
-	new = bit_write8(old, pos, value & 1);
-	if (new != old) {
-		if ((r = mcp23017_write8(reg, new)) != 0) {
+	new_value = bit_write8(old, pos, value & 1);
+	if (new_value != old) {
+		if ((r = mcp23017_write8(reg, new_value)) != 0) {
 			goto fail;
 		}
 	}
@@ -204,5 +216,9 @@ i2c_port_t
 mcp23017_get_i2c_port()
 {
 	return config->i2c_config->i2c_port;
+}
+#endif // defined(TRB_MCP23017_ESP_IDF)
+
+#if defined(__cplusplus)
 }
 #endif
