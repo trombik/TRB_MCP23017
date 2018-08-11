@@ -50,8 +50,8 @@ typedef struct
 	uint8_t sda;
 	/** I2C address of the device */
 	uint16_t address;
-	/** I2C clock speed in Khz (brzo I2C only) */
-	uint16_t speed;
+	/** I2C clock frequency in Khz (brzo I2C only) */
+	uint16_t freq;
 	/** I2C port number (ESP32 only) */
 	uint8_t i2c_port;
 } mcp23017_i2c_config_t;
