@@ -49,7 +49,7 @@ typedef struct
 	/** I2C SDA pin number */
 	uint8_t sda;
 	/** I2C address of the device */
-	uint16_t address;
+	uint8_t address;
 	/** I2C clock frequency in Khz (implementation varies depending on
      * libraries. see mcp23017_read8) */
 	uint16_t freq;
@@ -62,7 +62,7 @@ typedef struct
  *
  * \return : zero on success. ENOMEM on out of memory.
  */
-int8_t
+int16_t
 mcp23017_init();
 
 /*
@@ -71,7 +71,7 @@ mcp23017_init();
 void
 mcp23017_free();
 
-int8_t
+int16_t
 mcp23017_set_i2c_config(const mcp23017_i2c_config_t *new_config);
 
 /*
@@ -161,7 +161,7 @@ mcp23017_write8(const uint8_t reg, uint8_t value);
  *
  * \return I2C address
  */
-uint16_t
+uint8_t
 mcp23017_get_i2c_address();
 
 #if defined(TRB_MCP23017_ESP_IDF)

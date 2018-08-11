@@ -26,7 +26,7 @@ int32_t
 mcp23017_read8(const uint8_t reg, uint8_t *value)
 {
 	int32_t r = 0;
-	uint16_t address;
+	uint8_t address;
 	i2c_cmd_handle_t command;
 
 	address = mcp23017_get_i2c_address();
@@ -66,7 +66,7 @@ int32_t
 mcp23017_write8(const uint8_t reg, uint8_t value)
 {
 	int32_t r = 0;
-	uint16_t address;
+	uint8_t address;
 	i2c_cmd_handle_t command;
 	address = mcp23017_get_i2c_address();
 

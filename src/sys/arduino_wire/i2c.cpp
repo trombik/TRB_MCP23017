@@ -54,7 +54,7 @@ mcp23017_read8(const uint8_t reg, uint8_t *value)
 	int32_t err = 0;
 	const static uint8_t WITH_STOP_BIT = 1;
 	uint8_t length = 1;
-	uint16_t addr;
+	uint8_t addr;
 
 	addr = mcp23017_get_i2c_address();
 #if defined(WITH_DYNAMIC_I2C_FREQ)
@@ -91,7 +91,7 @@ mcp23017_write8(const uint8_t reg, uint8_t value)
 {
 	int32_t err = 0;
 	uint8_t length = 1;
-	uint16_t addr;
+	uint8_t addr;
 
 	addr = mcp23017_get_i2c_address();
 #if defined(WITH_DYNAMIC_I2C_FREQ)

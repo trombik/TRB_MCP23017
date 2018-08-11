@@ -41,10 +41,10 @@ typedef struct
 
 static mcp23017_config_t *config;
 
-int8_t
+int16_t
 mcp23017_init()
 {
-	int8_t r;
+	int16_t r;
 	config = (mcp23017_config_t *)calloc(1, sizeof(mcp23017_config_t));
 	if (config == NULL) {
 		r = ENOMEM;
@@ -73,10 +73,10 @@ mcp23017_free()
 	return;
 }
 
-int8_t
+int16_t
 mcp23017_set_i2c_config(const mcp23017_i2c_config_t *new_config)
 {
-	int8_t r;
+	int16_t r;
 	if (config == NULL || new_config == NULL) {
 		r = EINVAL;
 		goto fail;
@@ -201,7 +201,7 @@ mcp23017_enable_pullup(const uint8_t pin_num)
 	return mcp23017_set_pullup_value(pin_num, 1);
 }
 
-uint16_t
+uint8_t
 mcp23017_get_i2c_address()
 {
 	return config->i2c_config->address;
