@@ -72,6 +72,8 @@ setup()
 		Serial.println(err);
 		halt();
 	}
+
+	/* make sure IODIRA has the default value */
 	if (reg_value != 0xff) {
 		err = -1;
         Serial.print(F("IODIRA: "));
