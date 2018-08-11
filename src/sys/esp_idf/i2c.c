@@ -20,7 +20,6 @@
 
 #include <driver/i2c.h>
 #include <esp_log.h>
-#include "i2c.h"
 #include "../../TRB_MCP23017.h"
 
 int32_t
