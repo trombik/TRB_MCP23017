@@ -31,7 +31,7 @@
     "dependencies": [
         {
             "name": "Brzo I2C",
-            "version": "1.3.2",
+            "version": ">=1.3.2",
             "frameworks": "arduino",
             "platforms": "espressif8266"
         }
