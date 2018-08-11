@@ -26,6 +26,15 @@ halt()
 	}
 }
 
+void
+reset_ic()
+{
+	pinMode(RESET_PIN, OUTPUT);
+	digitalWrite(RESET_PIN, LOW);
+	delay_ms(10);
+	digitalWrite(RESET_PIN, HIGH);
+}
+
 mcp23017_i2c_config_t config;
 uint8_t level = 0;
 int32_t err;
@@ -66,6 +75,10 @@ setup()
 		Serial.println(err);
 		halt();
 	}
+
+	/* reset the IC so that it is in Power on Reset state */
+	reset_ic();
+
 	Serial.println(F("Read IODIRA."));
 	if ((err = mcp23017_read8(MCP23x17_IODIRB, &reg_value)) != 0) {
 		Serial.print(F("mcp23017_read8(): "));
