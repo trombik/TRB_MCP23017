@@ -214,7 +214,7 @@ mcp23017_get_i2c_address()
 uint16_t
 mcp23017_get_i2c_freq()
 {
-	return config->i2c_config->speed;
+	return config->i2c_config->freq;
 }
 
 #if defined(TRB_MCP23017_ESP_IDF)

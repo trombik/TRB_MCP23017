@@ -73,7 +73,7 @@ setup()
 	config.scl = GPIO_SCL;
 	config.sda = GPIO_SDA;
 	config.address = MCP23017_I2C_ADDRESS_DEFAULT;
-	config.speed = 100;
+	config.freq = 100;
 
 	Serial.println(F("Initializing driver."));
 	if ((err = mcp23017_init()) != 0) {
