@@ -40,8 +40,6 @@ setup()
 	Serial.println(__FILE__);
 
 	Serial.print(F("Initializing I2C... "));
-	pinMode(GPIO_SCL, INPUT_PULLUP);
-	pinMode(GPIO_SDA, INPUT_PULLUP);
 #if defined(TRB_MCP23017_ARDUINO_WIRE)
 #if defined(ESP32) || defined(ESP8266)
 	Serial.println("Initializing I2C (Wire)");
@@ -55,7 +53,6 @@ setup()
 	config.scl = GPIO_SCL;
 	config.sda = GPIO_SDA;
 	config.address = MCP23017_I2C_ADDRESS_DEFAULT;
-	// config.i2c_port = I2C_NUM_0;
 
 	Serial.println(F("Initializing driver."));
 	if ((err = mcp23017_init()) != 0) {
