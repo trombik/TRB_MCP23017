@@ -207,6 +207,16 @@ mcp23017_get_i2c_address()
 	return config->i2c_config->address;
 }
 
+/*
+ * \brief Get configured I2C clock frequency
+ */
+
+uint16_t
+mcp23017_get_i2c_freq()
+{
+	return config->i2c_config->speed;
+}
+
 #if defined(TRB_MCP23017_ESP_IDF)
 i2c_port_t
 mcp23017_get_i2c_port()
