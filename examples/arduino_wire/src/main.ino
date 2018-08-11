@@ -1,6 +1,11 @@
 #include <Arduino.h>
 #include <stdint.h>
+
+#if defined(TRB_MCP23017_ARDUINO_BRZO)
+#include <brzo_i2c.h>
+#else
 #include <Wire.h>
+#endif
 
 #include <TRB_MCP23017.h>
 
@@ -43,6 +48,9 @@ void
 setup()
 {
 	uint8_t reg_value;
+#if defined(TRB_MCP23017_ARDUINO_BRZO)
+	uint32_t clock_stretch_time_out_usec = 200;
+#endif // defined(TRB_MCP23017_ARDUINO_BRZO)
 
 	Serial.begin(115200);
 	delay(1000);
@@ -56,12 +64,16 @@ setup()
 #else
 	Wire.begin();
 #endif // defined(ESP32) || defined(ESP8266)
+#elif defined(TRB_MCP23017_ARDUINO_BRZO)
+	Serial.println("Initializing I2C (Brzo I2C)");
+	brzo_i2c_setup(GPIO_SDA, GPIO_SCL, clock_stretch_time_out_usec);
 #endif // defined(TRB_MCP23017_ARDUINO_WIRE)
 	Serial.println(F("Initialized."));
 
 	config.scl = GPIO_SCL;
 	config.sda = GPIO_SDA;
 	config.address = MCP23017_I2C_ADDRESS_DEFAULT;
+	config.speed = 100;
 
 	Serial.println(F("Initializing driver."));
 	if ((err = mcp23017_init()) != 0) {

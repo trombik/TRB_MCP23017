@@ -144,6 +144,9 @@ i2c_port_t
 mcp23017_get_i2c_port();
 #endif
 
+uint16_t
+mcp23017_get_i2c_freq();
+
 #if defined(__cplusplus)
 }
 #endif
