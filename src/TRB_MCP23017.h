@@ -50,7 +50,8 @@ typedef struct
 	uint8_t sda;
 	/** I2C address of the device */
 	uint16_t address;
-	/** I2C clock frequency in Khz (brzo I2C only) */
+	/** I2C clock frequency in Khz (implementation varies depending on
+     * libraries. see mcp23017_read8) */
 	uint16_t freq;
 	/** I2C port number (ESP32 only) */
 	uint8_t i2c_port;
@@ -113,7 +114,36 @@ mcp23017_enable_pullup(const uint8_t pin_num);
 /*
  * \brief Read a byte from a register
  *
+ * This function reads 8bit value from a register.
+ *
+ * `freq` in `mcp23017_i2c_config_t` is NOT used by the library except Brzo
+ * I2C. It is the application code's responsibility to manage SCL frequency.
+ *
+ * \param reg : Register address
+ * \param value : Variable to save the value from the register
  * \return zero on success, non-zero on failure
+ *
+ * When experimental WITH_DYNAMIC_I2C_FREQ is defined as build flag (disabled
+ * by default), and the underlying I2C library provides a function to set SCL
+ * frequency, it sets the pre-configured clock frequency by
+ * mcp23017_set_i2c_config() before each I2C transaction. Following libraries
+ * supports this feature:
+ *
+ * * Arduino esp32 with Wire
+ * * Arduino esp8266 with Wire
+ * * Arduino Brzo I2C for ESP8266
+ *
+ * When underlying I2C library also provides a function to get currently
+ * configured frequency, it restores the configured frequency after each I2C
+ * transaction.  Following libraries supports this feature:
+ *
+ * * Arduino ESP32 with Wire
+ * * Arduino Brzo I2C for ESP8266
+ *
+ * With other libraries, it is necessary to restore the old frequency after
+ * every function call that reads or writes registers, or simply use same SCL
+ * clock throughout the application code. Note that Brzo I2C behaves this way
+ * with or without WITH_DYNAMIC_I2C_FREQ defined.
  */
 int32_t
 mcp23017_read8(const uint8_t reg, uint8_t *value);
