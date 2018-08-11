@@ -1,9 +1,52 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <errno.h>
+#include <stdint.h>
 #include "TRB_MCP23017.h"
 
+/* arduino-esp8266 has rather old Wire library and lacks Wire.getClock(). */
+#if defined(ARDUINO_ARCH_ESP32)
+#define HAS_WIRE_GETCLOCK
+#endif
+
 #define WITH_REPEATED_START	false
+
+/* Optionally support optimized SCL frequency for this particular IC */
+#if defined(WITH_DYNAMIC_I2C_FREQ)
+static size_t saved_freq = 0;
+
+/*
+ * \brief Set configured frequency in i2c_config, restore the old value if
+ * possible.
+ */
+static uint8_t
+set_freq()
+{
+	uint8_t err;
+	uint16_t freq;
+
+	freq = mcp23017_get_i2c_freq();
+	if (freq == 0) {
+		err = EINVAL;
+		goto fail;
+	}
+#if defined(HAS_WIRE_GETCLOCK)
+	saved_freq = Wire.getClock();
+#endif
+	Wire.setClock(freq * 1000);
+	err = 0;
+fail:
+	return err;
+}
+
+static void
+restore_freq()
+{
+	if (saved_freq != 0) {
+		Wire.setClock(saved_freq);
+	}
+}
+#endif // defined(WITH_DYNAMIC_I2C_FREQ)
 
 int32_t
 mcp23017_read8(const uint8_t reg, uint8_t *value)
@@ -14,6 +57,11 @@ mcp23017_read8(const uint8_t reg, uint8_t *value)
 	uint16_t addr;
 
 	addr = mcp23017_get_i2c_address();
+#if defined(WITH_DYNAMIC_I2C_FREQ)
+	if ((err = set_freq()) != 0) {
+		goto fail;
+	}
+#endif
 	/* start transaction */
 	Wire.beginTransmission(addr);
 	/* write register address */
@@ -32,6 +80,9 @@ mcp23017_read8(const uint8_t reg, uint8_t *value)
 	}
 	*value = Wire.read();
 fail:
+#if defined(WITH_DYNAMIC_I2C_FREQ)
+	restore_freq();
+#endif
 	return err;
 }
 
@@ -43,6 +94,11 @@ mcp23017_write8(const uint8_t reg, uint8_t value)
 	uint16_t addr;
 
 	addr = mcp23017_get_i2c_address();
+#if defined(WITH_DYNAMIC_I2C_FREQ)
+	if ((err = set_freq()) != 0) {
+		goto fail;
+	}
+#endif
 	/* start transaction */
 	Wire.beginTransmission(addr);
 	/* write register address */
@@ -58,5 +114,8 @@ mcp23017_write8(const uint8_t reg, uint8_t value)
 	/* end end transaction */
 	err = Wire.endTransmission();
 fail:
+#if defined(WITH_DYNAMIC_I2C_FREQ)
+	restore_freq();
+#endif
 	return err;
 }
