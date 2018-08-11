@@ -57,6 +57,7 @@ typedef struct
 	uint8_t i2c_port;
 } mcp23017_i2c_config_t;
 
+
 /*
  * \brief Initialize the driver
  *
@@ -94,6 +95,35 @@ mcp23017_set_pin_direction(const uint8_t pin_num, const uint8_t direction);
  */
 int32_t
 mcp23017_set_pin_level(const uint8_t pin_num, const uint8_t level);
+
+/*
+ * \brief Configure intrrupt of a pin
+ *
+ * * Set default value for the intrrupt pin
+ * * Set intrrupt condition
+ * * Enable intrrupt on the pin
+ *
+ * \param pin_num : Pin number between 0 and 15
+ * \param default_value : default value to compare when interrupt-on-change
+ * from register value is used
+ * \param condition : ON_CHANGE or ON_CHANGE_FROM_REG
+ * \return Zero on success, EINVAL when argument is invalid, other values on
+ * I2C failures
+ */
+int32_t
+mcp23017_enable_pin_intrrupt(const uint8_t pin_num, const uint8_t default_value, const mcp_int_condition_t condition);
+
+/*
+ * \brief Set a bit on a register
+ *
+ * \param reg : Register address
+ * \param value : 1 or 0.
+ * \param pos : Bit position to set the value
+ * \return Zero on success. EINVAL if argument is invalid. Other values on I2C
+ * failure.
+ */
+int32_t
+mcp23017_set_bit(const uint8_t reg, const uint8_t value, const uint8_t pos);
 
 /*
  * \brief Disable pullup on a pin
