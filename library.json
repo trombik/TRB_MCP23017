@@ -21,6 +21,7 @@
         "arduino"
     ],
     "platforms": [
+        "atmelavr",
         "espressif32",
         "espressif8266"
     ],
