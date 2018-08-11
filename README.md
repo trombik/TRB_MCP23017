@@ -8,4 +8,6 @@ C driver for [MCP23017](https://www.microchip.com/wwwproducts/en/MCP23017).
 
 | Platform | Framework | I2C library |
 |----------|-----------|-------------|
-| `esp32`  | `esp-idf` | Native I2C  |
+| `espressif32`  | `esp-idf` | Native I2C  |
+| `espressif8266` | `arduino` | `Wire`, `Brzo I2C` |
+| `atmelavr` | `arduino` | `Wire` |
