@@ -9,14 +9,18 @@
 
 #include <TRB_MCP23017.h>
 
+mcp23017_i2c_config_t config;
+uint8_t level = 0;
+int32_t err;
+volatile uint8_t pin_changed = 0;
+uint8_t reg_value;
+
 void
 delay_ms(const uint16_t milli)
 {
 	uint32_t now = millis();
 	while (millis() < now + milli) {
-#if defined(ESP32) || defined(ESP8266)
 		yield();
-#endif
 	}
 }
 
@@ -40,14 +44,15 @@ reset_ic()
 	digitalWrite(RESET_PIN, HIGH);
 }
 
-mcp23017_i2c_config_t config;
-uint8_t level = 0;
-int32_t err;
+void
+pin_change_isr()
+{
+	pin_changed = 1;
+}
 
 void
 setup()
 {
-	uint8_t reg_value;
 #if defined(TRB_MCP23017_ARDUINO_BRZO)
 	uint32_t clock_stretch_time_out_usec = 200;
 #endif // defined(TRB_MCP23017_ARDUINO_BRZO)
@@ -101,34 +106,73 @@ setup()
 	/* make sure IODIRA has the default value */
 	if (reg_value != 0xff) {
 		err = -1;
-        Serial.print(F("IODIRA: "));
-        Serial.println(reg_value);
+		Serial.print(F("IODIRA: "));
+		Serial.println(reg_value);
 		halt();
 	}
-	for (uint8_t pin = 0; pin <= 7; pin++) {
-		Serial.print(F("Set pin "));
-		Serial.print(pin);
-		Serial.println(F(" to OUTPUT"));
-		err = mcp23017_set_pin_direction(pin, OUTPUT);
-		if (err != 0) {
-			Serial.print(F("mcp23017_set_pin_direction(): "));
-			Serial.println(err);
-			halt();
-		}
+
+	Serial.println(F("Set all pins on PORTA as OUTPUT"));
+	if ((err = mcp23017_write8(MCP23x17_IODIRA, 0x00)) != 0) {
+		Serial.print(F("mcp23017_write8(): "));
+		Serial.println(err);
+		halt();
 	}
+
+	Serial.println(F("Enable pullup for PORTB_INT_PIN on PORTB"));
+	if ((err = mcp23017_set_bit(MCP23x17_GPPUB, 1, PORTB_INT_PIN))
+	    != 0) {
+		Serial.print(F("mcp23017_set_bit(): "));
+		Serial.println(err);
+		halt();
+	}
+
+	Serial.println(F("Set direction on PORTB INPUT_PULLUP"));
+	if ((err = mcp23017_set_pin_direction(PORTB_INT_PIN + 8, INPUT_PULLUP))
+	    != 0) {
+		Serial.print(F("mcp23017_set_pin_direction(): "));
+		Serial.println(err);
+		halt();
+	}
+
+	Serial.println(F("Configure PORTB_INT_PIN on PORTB to generate INT"));
+	if ((err = mcp23017_enable_pin_intrrupt(PORTB_INT_PIN + 8, HIGH,
+	    ON_CHANGE_FROM_REG)) != 0) {
+		Serial.print(F("mcp23017_enable_pin_intrrupt(): "));
+		Serial.println(err);
+		halt();
+	}
+
+	Serial.print("Set FALLING IRQ on ");
+	Serial.println(IRQ_PIN);
+	pinMode(IRQ_PIN, INPUT);
+	attachInterrupt(digitalPinToInterrupt(IRQ_PIN), pin_change_isr, FALLING);
 	Serial.println(F("Starting loop"));
 }
 
 void
 loop() {
-	level ^= 1;
-	for (uint8_t pin = 0; pin <= 7; pin++) {
-		delay_ms(500);
-		err = mcp23017_set_pin_level(pin, level);
-		if (err != 0) {
-			Serial.print(F("mcp23017_set_pin_level(): "));
-			Serial.println(err);
-			halt();
-		}
+	delay_ms(500);
+	if (pin_changed == 1) {
+		pin_changed = 0;
+		Serial.println("Pressed");
+	}
+	err = mcp23017_read8(MCP23x17_INTCAPB, &reg_value);
+	if ((err = mcp23017_read8(MCP23x17_OLATA, &reg_value)) != 0) {
+		Serial.print(F("mcp23017_read8(): "));
+		Serial.println(err);
+		halt();
+	}
+	if (reg_value == 0xff || reg_value == 0) {
+		level ^= 1;
+	}
+	if (level == 1) {
+		reg_value = (reg_value << 1) | 1;
+	} else {
+		reg_value = (reg_value << 1);
+	}
+	if ((err = mcp23017_write8(MCP23x17_OLATA, reg_value)) != 0) {
+		Serial.print(F("mcp23017_write8(): "));
+		Serial.println(err);
+		halt();
 	}
 }

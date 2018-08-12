@@ -95,6 +95,9 @@ TEST_CASE("when_mcp23017_write8_failed_THEN_returns_non_zero", component)
 	my_setup();
 
 	/* when mcp23017_write8() fails */
+	faked_reg_value = 0x00;
+	faked_return_value = 0;
+	mcp23017_read8_fake.custom_fake = mcp23017_read8_fake_custom_fake;
 	mcp23017_write8_fake.return_val = -1;
 	err = mcp23017_enable_pullup(1);
 

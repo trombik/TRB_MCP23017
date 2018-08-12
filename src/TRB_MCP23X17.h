@@ -58,6 +58,18 @@
 #define	MCP23x17_OLATB		(MCP23x17_OLAT + 1)
 
 /*
+ * \brief Intrrupt conditions
+ */
+typedef enum
+{
+	/** cause an interrupt to occur if a pin changes to the opposite state */
+	ON_CHANGE,
+	/**  cause an interrupt to occur if the corresponding input pin differs
+	 * from the register bit */
+	ON_CHANGE_FROM_REG
+} mcp_int_condition_t;
+
+/*
  * \brief IOCON register bits
  */
 #define	IOCON_UNUSED	(0x01)
