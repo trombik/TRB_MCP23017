@@ -126,6 +126,17 @@ int32_t
 mcp23017_set_bit(const uint8_t reg, const uint8_t value, const uint8_t pos);
 
 /*
+ * \brief Get a bit of a register
+ * \param reg : Register address
+ * \param value : Variable to write the bit to
+ * \param pos : Bit position to set the value
+ * \return Zero on success. EINVAL if argument is invalid. Other values on I2C
+ * failure.
+ */
+int32_t
+mcp23017_get_bit(const uint8_t reg, uint8_t *value, const uint8_t pos);
+
+/*
  * \brief Disable pullup on a pin
  *
  * \param pin_num : Pin number

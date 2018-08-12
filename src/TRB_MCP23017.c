@@ -209,6 +209,26 @@ fail:
 
 }
 
+int32_t
+mcp23017_get_bit(const uint8_t reg, uint8_t *value, const uint8_t pos)
+{
+	int32_t r;
+	uint8_t reg_value;
+
+	if (pos > 8) {
+		r = EINVAL;
+		goto fail;
+	}
+
+	if ((r = mcp23017_read8(reg, &reg_value)) != 0) {
+		goto fail;
+	}
+	*value = (reg_value >> pos ) & 1;
+fail:
+	return r;
+
+}
+
 static int32_t
 mcp23017_set_pullup_value(const uint8_t pin_num, const uint8_t value)
 {
