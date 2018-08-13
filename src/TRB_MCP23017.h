@@ -153,6 +153,16 @@ int32_t
 mcp23017_enable_pin_pullup(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num);
 
 /*
+ * \brief Flip output level of a pin
+ *
+ * \param dev : device variable
+ * \param port : 0 (PORTA), or 1 (PORTB)
+ * \param pin_num : Pin number
+ */
+int32_t
+mcp23017_flip_pin(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num);
+
+/*
  * \brief Read a byte from a register
  *
  * This function reads 8bit value from a register.
