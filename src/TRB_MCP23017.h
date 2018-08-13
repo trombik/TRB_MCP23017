@@ -140,7 +140,7 @@ mcp23017_get_bit(const mcp23017_dev_t *dev, const uint8_t reg, uint8_t *value, c
  * \param pin_num : Pin number
  */
 int32_t
-mcp23017_disable_pullup(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num);
+mcp23017_disable_pin_pullup(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num);
 
 /*
  * \brief Enable pullup on a pin
@@ -150,7 +150,7 @@ mcp23017_disable_pullup(const mcp23017_dev_t *dev, const uint8_t port, const uin
  * \param pin_num : Pin number
  */
 int32_t
-mcp23017_enable_pullup(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num);
+mcp23017_enable_pin_pullup(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num);
 
 /*
  * \brief Read a byte from a register
