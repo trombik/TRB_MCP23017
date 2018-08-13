@@ -71,7 +71,7 @@ mcp23017_set_pin_direction(const mcp23017_dev_t *dev, const uint8_t port, const 
 		goto fail;
 	}
 	if (enable_pullup == 1) {
-		if ((r = mcp23017_enable_pullup(dev, port, pin_num)) != 0) {
+		if ((r = mcp23017_enable_pin_pullup(dev, port, pin_num)) != 0) {
 			goto fail;
 		}
 	}
@@ -201,7 +201,7 @@ fail:
  * \param pin_num : Pin number
  */
 int32_t
-mcp23017_disable_pullup(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num)
+mcp23017_disable_pin_pullup(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num)
 {
 	return mcp23017_set_pullup_value(dev, port, pin_num, 0);
 }
@@ -212,7 +212,7 @@ mcp23017_disable_pullup(const mcp23017_dev_t *dev, const uint8_t port, const uin
  * \param pin_num : Pin number
  */
 int32_t
-mcp23017_enable_pullup(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num)
+mcp23017_enable_pin_pullup(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num)
 {
 	return mcp23017_set_pullup_value(dev, port, pin_num, 1);
 }
