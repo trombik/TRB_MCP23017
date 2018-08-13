@@ -9,6 +9,7 @@
 static char component[] = "[TRB_MCP23017][mcp23017_get_bit]";
 int32_t err, faked_return_value;
 uint8_t faked_reg_value, reg_value;
+mcp23017_dev_t *dev;
 
 /* setup fff */
 DEFINE_FFF_GLOBALS;
@@ -19,7 +20,7 @@ TEST_CASE("when_given_pos_is_invalid_THEN_returns_EINVAL", component)
 
 	/* when level is invalid */
 	uint8_t invalid_pos = 10;
-	err = mcp23017_get_bit(1, &reg_value, invalid_pos);
+	err = mcp23017_get_bit(dev, 1, &reg_value, invalid_pos);
 
 	/* then return value is EINVAL */
 	TEST_ASSERT_EQUAL_INT32(EINVAL, err);
@@ -37,7 +38,7 @@ TEST_CASE("WHEN_set_1st_bit_in_MCP23x17_IODIRA_THEN_returns_zero", component)
  	mcp23017_read8_fake.custom_fake = mcp23017_read8_fake_custom_fake;
 
 	/* when get 1st bit in MCP23x17_IODIRA  */
-	err = mcp23017_get_bit(MCP23x17_IODIRA, &reg_value, 0);
+	err = mcp23017_get_bit(dev, MCP23x17_IODIRA, &reg_value, 0);
 
 	/* then writes 1 to pointer, returns 0 */
 	TEST_ASSERT_EQUAL_INT32(0, err);
@@ -56,7 +57,7 @@ TEST_CASE("WHEN_set_1st_bit_in_MCP23x17_IODIRA_THEN_returns_zero_with_zero", com
  	mcp23017_read8_fake.custom_fake = mcp23017_read8_fake_custom_fake;
 
 	/* when get 1st bit in MCP23x17_IODIRA  */
-	err = mcp23017_get_bit(MCP23x17_IODIRA, &reg_value, 0);
+	err = mcp23017_get_bit(dev, MCP23x17_IODIRA, &reg_value, 0);
 
 	/* then writes 1 to pointer, returns 0 */
 	TEST_ASSERT_EQUAL_INT32(0, err);
@@ -75,7 +76,7 @@ TEST_CASE("WHEN_set_2nd_bit_in_MCP23x17_IODIRA_THEN_returns_zero", component)
  	mcp23017_read8_fake.custom_fake = mcp23017_read8_fake_custom_fake;
 
 	/* when get 2nd bit in MCP23x17_IODIRA  */
-	err = mcp23017_get_bit(MCP23x17_IODIRA, &reg_value, 1);
+	err = mcp23017_get_bit(dev, MCP23x17_IODIRA, &reg_value, 1);
 
 	/* then writes 1 to pointer, returns 0 */
 	TEST_ASSERT_EQUAL_INT32(0, err);

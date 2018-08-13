@@ -34,59 +34,6 @@
 extern "C" {
 #endif
 
-typedef struct
-{
-	mcp23017_i2c_config_t *i2c_config;
-} mcp23017_config_t;
-
-static mcp23017_config_t *config;
-
-int16_t
-mcp23017_init()
-{
-	int16_t r;
-	config = (mcp23017_config_t *)calloc(1, sizeof(mcp23017_config_t));
-	if (config == NULL) {
-		r = ENOMEM;
-		goto calloc_fail;
-	}
-	config->i2c_config = (mcp23017_i2c_config_t *)calloc(1, sizeof(mcp23017_i2c_config_t));
-	if (config->i2c_config == NULL) {
-		free(config);
-		config = NULL;
-		r = ENOMEM;
-		goto calloc_fail;
-	}
-	r = 0;
-calloc_fail:
-	return r;
-}
-
-void
-mcp23017_free()
-{
-	if (config != NULL) {
-		free(config->i2c_config);
-	}
-	free(config);
-	config = NULL;
-	return;
-}
-
-int16_t
-mcp23017_set_i2c_config(const mcp23017_i2c_config_t *new_config)
-{
-	int16_t r;
-	if (config == NULL || new_config == NULL) {
-		r = EINVAL;
-		goto fail;
-	}
-	*(config->i2c_config) = *new_config;
-	r = 0;
-fail:
-	return r;
-}
-
 static uint8_t
 bit_write8(const uint8_t old, const uint8_t pos, const uint8_t value)
 {
@@ -94,7 +41,7 @@ bit_write8(const uint8_t old, const uint8_t pos, const uint8_t value)
 }
 
 int32_t
-mcp23017_set_pin_direction(const uint8_t pin_num, const uint8_t direction)
+mcp23017_set_pin_direction(const mcp23017_dev_t *dev, const uint8_t pin_num, const uint8_t direction)
 {
 	int32_t r;
 	uint8_t reg, value, pos, enable_pullup;
@@ -117,11 +64,11 @@ mcp23017_set_pin_direction(const uint8_t pin_num, const uint8_t direction)
 
 	reg = pin_num < 8 ? MCP23x17_IODIR : MCP23x17_IODIR + 1;
 	pos = pin_num < 8 ? pin_num : pin_num - 8;
-	if ((r = mcp23017_set_bit(reg, value, pos)) != 0) {
+	if ((r = mcp23017_set_bit(dev, reg, value, pos)) != 0) {
 		goto fail;
 	}
 	if (enable_pullup == 1) {
-		if ((r = mcp23017_enable_pullup(pin_num)) != 0) {
+		if ((r = mcp23017_enable_pullup(dev, pin_num)) != 0) {
 			goto fail;
 		}
 	}
@@ -130,7 +77,7 @@ fail:
 }
 
 int32_t
-mcp23017_set_pin_level(const uint8_t pin_num, const uint8_t level)
+mcp23017_set_pin_level(const mcp23017_dev_t *dev, const uint8_t pin_num, const uint8_t level)
 {
 	int32_t r;
 	uint8_t reg, pos, old, new_value;
@@ -140,12 +87,12 @@ mcp23017_set_pin_level(const uint8_t pin_num, const uint8_t level)
 	}
 	reg = pin_num < 8 ? MCP23x17_OLAT : MCP23x17_OLAT + 1;
 	pos = pin_num < 8 ? pin_num : pin_num - 8;
-	if ((r = mcp23017_read8(reg, &old)) != 0) {
+	if ((r = mcp23017_read8(dev, reg, &old)) != 0) {
 		goto fail;
 	}
 	new_value = bit_write8(old, pos, level);
 	if (new_value != old) {
-		if ((r = mcp23017_write8(reg, new_value)) != 0)
+		if ((r = mcp23017_write8(dev, reg, new_value)) != 0)
 			goto fail;
 	}
 fail:
@@ -153,7 +100,7 @@ fail:
 }
 
 int32_t
-mcp23017_enable_pin_intrrupt(const uint8_t pin_num, const uint8_t default_value, const mcp_int_condition_t condition)
+mcp23017_enable_pin_intrrupt(const mcp23017_dev_t *dev, const uint8_t pin_num, const uint8_t default_value, const mcp_int_condition_t condition)
 {
 	uint8_t reg, pos;
 	int32_t r;
@@ -165,19 +112,19 @@ mcp23017_enable_pin_intrrupt(const uint8_t pin_num, const uint8_t default_value,
 	/* set default_value */
 	pos = pin_num < 8 ? pin_num : pin_num - 8;
 	reg = pin_num < 8 ? MCP23x17_DEFVAL : MCP23x17_DEFVAL + 1;
-	if ((r = mcp23017_set_bit(reg, default_value, pos)) != 0) {
+	if ((r = mcp23017_set_bit(dev, reg, default_value, pos)) != 0) {
 		goto fail;
 	}
 
 	/* set condition */
 	reg = pin_num < 8 ? MCP23x17_INTCON : MCP23x17_INTCON + 1;
-	if ((r = mcp23017_set_bit(reg, condition, pos)) != 0) {
+	if ((r = mcp23017_set_bit(dev, reg, condition, pos)) != 0) {
 		goto fail;
 	}
 
 	/* enable intrrupt */
 	reg = pin_num < 8 ? MCP23x17_GPINTEN : MCP23x17_GPINTEN + 1;
-	if ((r = mcp23017_set_bit(reg, condition, pos)) != 0) {
+	if ((r = mcp23017_set_bit(dev, reg, condition, pos)) != 0) {
 		goto fail;
 	}
 fail:
@@ -185,7 +132,7 @@ fail:
 }
 
 int32_t
-mcp23017_set_bit(const uint8_t reg, const uint8_t value, const uint8_t pos)
+mcp23017_set_bit(const mcp23017_dev_t *dev, const uint8_t reg, const uint8_t value, const uint8_t pos)
 {
 	int32_t r;
 	uint8_t old_value, new_value;
@@ -195,12 +142,12 @@ mcp23017_set_bit(const uint8_t reg, const uint8_t value, const uint8_t pos)
 		goto fail;
 	}
 
-	if ((r = mcp23017_read8(reg, &old_value)) != 0) {
+	if ((r = mcp23017_read8(dev, reg, &old_value)) != 0) {
 		goto fail;
 	}
 	new_value = bit_write8(old_value, pos, value & 1);
 	if (new_value != old_value) {
-		if ((r = mcp23017_write8(reg, new_value)) != 0) {
+		if ((r = mcp23017_write8(dev, reg, new_value)) != 0) {
 			goto fail;
 		}
 	}
@@ -210,7 +157,7 @@ fail:
 }
 
 int32_t
-mcp23017_get_bit(const uint8_t reg, uint8_t *value, const uint8_t pos)
+mcp23017_get_bit(const mcp23017_dev_t *dev, const uint8_t reg, uint8_t *value, const uint8_t pos)
 {
 	int32_t r;
 	uint8_t reg_value;
@@ -220,7 +167,7 @@ mcp23017_get_bit(const uint8_t reg, uint8_t *value, const uint8_t pos)
 		goto fail;
 	}
 
-	if ((r = mcp23017_read8(reg, &reg_value)) != 0) {
+	if ((r = mcp23017_read8(dev, reg, &reg_value)) != 0) {
 		goto fail;
 	}
 	*value = (reg_value >> pos ) & 1;
@@ -230,14 +177,14 @@ fail:
 }
 
 static int32_t
-mcp23017_set_pullup_value(const uint8_t pin_num, const uint8_t value)
+mcp23017_set_pullup_value(const mcp23017_dev_t *dev, const uint8_t pin_num, const uint8_t value)
 {
 	int32_t r;
 	uint8_t reg, pos;
 	reg = (pin_num < 8) ? MCP23x17_GPPU : MCP23x17_GPPU + 1;
 	pos = (pin_num < 8) ? pin_num : pin_num - 8;
 
-	if ((r = mcp23017_set_bit(reg, value & 1, pos)) != 0) {
+	if ((r = mcp23017_set_bit(dev, reg, value & 1, pos)) != 0) {
 		goto fail;
 	}
 fail:
@@ -250,9 +197,9 @@ fail:
  * \param pin_num : Pin number
  */
 int32_t
-mcp23017_disable_pullup(const uint8_t pin_num)
+mcp23017_disable_pullup(const mcp23017_dev_t *dev, const uint8_t pin_num)
 {
-	return mcp23017_set_pullup_value(pin_num, 0);
+	return mcp23017_set_pullup_value(dev, pin_num, 0);
 }
 
 /*
@@ -261,34 +208,10 @@ mcp23017_disable_pullup(const uint8_t pin_num)
  * \param pin_num : Pin number
  */
 int32_t
-mcp23017_enable_pullup(const uint8_t pin_num)
+mcp23017_enable_pullup(const mcp23017_dev_t *dev, const uint8_t pin_num)
 {
-	return mcp23017_set_pullup_value(pin_num, 1);
+	return mcp23017_set_pullup_value(dev, pin_num, 1);
 }
-
-uint8_t
-mcp23017_get_i2c_address()
-{
-	return config->i2c_config->address;
-}
-
-/*
- * \brief Get configured I2C clock frequency
- */
-
-uint16_t
-mcp23017_get_i2c_freq()
-{
-	return config->i2c_config->freq;
-}
-
-#if defined(TRB_MCP23017_ESP_IDF)
-i2c_port_t
-mcp23017_get_i2c_port()
-{
-	return config->i2c_config->i2c_port;
-}
-#endif // defined(TRB_MCP23017_ESP_IDF)
 
 #if defined(__cplusplus)
 }

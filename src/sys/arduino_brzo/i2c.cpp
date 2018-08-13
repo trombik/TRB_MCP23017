@@ -8,20 +8,16 @@
 #define WITHOUT_REPEATED_START false
 
 int32_t
-mcp23017_read8(const uint8_t reg, uint8_t *value)
+mcp23017_read8(const mcp23017_dev_t *dev, const uint8_t reg, uint8_t *value)
 {
 	int32_t err;
 	uint8_t reg_addr_copy;
 
 	/* avoid const violation */
-	reg_addr_copy = reg;
-	if (mcp23017_get_i2c_freq() == 0) {
-		err = EINVAL;
-		goto fail;
-	}
+	reg_addr_copy = dev->address;
 
 	/* start transaction */
-	brzo_i2c_start_transaction(mcp23017_get_i2c_address(), mcp23017_get_i2c_freq());
+	brzo_i2c_start_transaction(reg_addr_copy, dev->i2c_config->freq);
 
 	/* write register address with repeated start */
 	brzo_i2c_write(&reg_addr_copy, 1, WITH_REPEATED_START);
@@ -31,31 +27,24 @@ mcp23017_read8(const uint8_t reg, uint8_t *value)
 
 	/* send the I2C transaction */
 	err = brzo_i2c_end_transaction();
-fail:
 	return err;
 }
 
 int32_t
-mcp23017_write8(const uint8_t reg, uint8_t value)
+mcp23017_write8(const mcp23017_dev_t *dev, const uint8_t reg, uint8_t value)
 {
 	int32_t err;
 	uint8_t buffer[2];
-	if (mcp23017_get_i2c_freq() == 0) {
-		err = EINVAL;
-		goto fail;
-	}
-
 	buffer[0] = reg;
 	buffer[1] = value;
 
 	/* start transaction */
-	brzo_i2c_start_transaction(mcp23017_get_i2c_address(), mcp23017_get_i2c_freq());
+	brzo_i2c_start_transaction(dev->address, dev->i2c_config->freq);
 
 	/* write register address + the value */
 	brzo_i2c_write(buffer, 2, WITHOUT_REPEATED_START);
 
 	/* send the I2C transaction */
 	err = brzo_i2c_end_transaction();
-fail:
 	return err;
 }

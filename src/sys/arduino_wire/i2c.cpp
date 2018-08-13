@@ -20,12 +20,12 @@ static size_t saved_freq = 0;
  * possible.
  */
 static uint8_t
-set_freq()
+set_freq(const mcp23017_dev_t *dev)
 {
 	uint8_t err;
 	uint16_t freq;
 
-	freq = mcp23017_get_i2c_freq();
+	freq = dev->i2c_config->freq;
 	if (freq == 0) {
 		err = EINVAL;
 		goto fail;
@@ -49,21 +49,22 @@ restore_freq()
 #endif // defined(WITH_DYNAMIC_I2C_FREQ)
 
 int32_t
-mcp23017_read8(const uint8_t reg, uint8_t *value)
+mcp23017_read8(const mcp23017_dev_t *dev, const uint8_t reg, uint8_t *value)
 {
 	int32_t err = 0;
 	const static uint8_t WITH_STOP_BIT = 1;
 	uint8_t length = 1;
 	uint8_t addr;
 
-	addr = mcp23017_get_i2c_address();
+    addr = dev->address;
+
 #if defined(WITH_DYNAMIC_I2C_FREQ)
-	if ((err = set_freq()) != 0) {
+	if ((err = set_freq(dev)) != 0) {
 		goto fail;
 	}
 #endif
 	/* start transaction */
-	Wire.beginTransmission(addr);
+	Wire.beginTransmission(dev->address);
 	/* write register address */
 	if ((err = Wire.write(reg)) != 1) {
 		err = EIO;
@@ -87,20 +88,18 @@ fail:
 }
 
 int32_t
-mcp23017_write8(const uint8_t reg, uint8_t value)
+mcp23017_write8(const mcp23017_dev_t *dev, const uint8_t reg, uint8_t value)
 {
 	int32_t err = 0;
 	uint8_t length = 1;
-	uint8_t addr;
 
-	addr = mcp23017_get_i2c_address();
 #if defined(WITH_DYNAMIC_I2C_FREQ)
-	if ((err = set_freq()) != 0) {
+	if ((err = set_freq(dev)) != 0) {
 		goto fail;
 	}
 #endif
 	/* start transaction */
-	Wire.beginTransmission(addr);
+	Wire.beginTransmission(dev->address);
 	/* write register address */
 	if ((err = Wire.write(reg)) != 1) {
 		err = EIO;

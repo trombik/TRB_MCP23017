@@ -23,13 +23,13 @@
 #include "../../TRB_MCP23017.h"
 
 int32_t
-mcp23017_read8(const uint8_t reg, uint8_t *value)
+mcp23017_read8(const mcp23017_dev_t *dev, const uint8_t reg, uint8_t *value)
 {
 	int32_t r = 0;
 	uint8_t address;
 	i2c_cmd_handle_t command;
 
-	address = mcp23017_get_i2c_address();
+	address = dev->address;
 	command = i2c_cmd_link_create();
 	if ((r = i2c_master_start(command)) != ESP_OK) {
 		goto fail;
@@ -53,7 +53,7 @@ mcp23017_read8(const uint8_t reg, uint8_t *value)
 		goto fail;
 	}
 
-	r = i2c_master_cmd_begin(mcp23017_get_i2c_port(), command, 10 / portTICK_PERIOD_MS);
+	r = i2c_master_cmd_begin(dev->i2c_config->i2c_port, command, 10 / portTICK_PERIOD_MS);
 	if (r != ESP_OK) {
 		ESP_LOGE(__func__, "i2c_master_cmd_begin(): %d", r);
 	}
@@ -63,12 +63,12 @@ fail:
 }
 
 int32_t
-mcp23017_write8(const uint8_t reg, uint8_t value)
+mcp23017_write8(const mcp23017_dev_t *dev, const uint8_t reg, uint8_t value)
 {
 	int32_t r = 0;
 	uint8_t address;
 	i2c_cmd_handle_t command;
-	address = mcp23017_get_i2c_address();
+	address = dev->address;
 
 	command = i2c_cmd_link_create();
 	if ((r = i2c_master_start(command)) != ESP_OK) {
@@ -86,7 +86,7 @@ mcp23017_write8(const uint8_t reg, uint8_t value)
 	if ((r = i2c_master_stop(command)) != ESP_OK) {
 		goto fail;
 	}
-	if ((r = i2c_master_cmd_begin(mcp23017_get_i2c_port(), command, 10 / portTICK_PERIOD_MS)) != ESP_OK) {
+	if ((r = i2c_master_cmd_begin(dev->i2c_config->i2c_port, command, 10 / portTICK_PERIOD_MS)) != ESP_OK) {
 		ESP_LOGE(__func__, "i2c_master_cmd_begin(): %d", r);
 		goto fail;
 	}

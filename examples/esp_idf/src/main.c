@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdlib.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <driver/i2c.h>
@@ -11,10 +12,8 @@
 
 #define DONTCARE_ZERO   (0)
 
-mcp23017_i2c_config_t config;
-
 int32_t
-i2c_init()
+i2c_init(const mcp23017_i2c_config_t config)
 {
 	int32_t r;
 	i2c_config_t i2c_config;
@@ -46,31 +45,28 @@ task_blink(void *pvParameters)
 	uint8_t reg_value;
 	uint8_t level = 0;
 	int32_t err;
+	mcp23017_i2c_config_t config;
+	mcp23017_dev_t *dev;
+
 	config.scl = GPIO_SCL;
 	config.sda = GPIO_SDA;
-	config.address = MCP23017_I2C_ADDRESS_DEFAULT;
 	config.i2c_port = I2C_NUM_0;
+	dev = calloc(1, sizeof(mcp23017_dev_t));
+	if (dev == NULL) {
+		ESP_LOGE(__func__, "Out of memory");
+		goto fail;
+	}
+	dev->i2c_config = &config;
+	dev->address = MCP23017_I2C_ADDRESS_DEFAULT;
 
 	ESP_LOGI(__func__, "Initializing I2C.");
-	if ((err = i2c_init()) != 0) {
+	if ((err = i2c_init(config)) != 0) {
 		ESP_LOGE(__func__, "i2c_init(): %d", err);
 		goto fail;
 	}
 
-	ESP_LOGI(__func__, "Initializing driver.");
-	if ((err = mcp23017_init()) != 0) {
-		ESP_LOGE(__func__, "mcp23017_init(): %d", err);
-		goto fail;
-	}
-
-	ESP_LOGI(__func__, "Configuring driver.");
-	if ((err = mcp23017_set_i2c_config(&config)) != 0) {
-		ESP_LOGE(__func__, "mcp23017_set_i2c_config(): %d", err);
-		goto fail;
-	}
-
 	ESP_LOGI(__func__, "Read IODIRA.");
-	if ((err = mcp23017_read8(MCP23x17_IODIRA, &reg_value)) != 0) {
+	if ((err = mcp23017_read8(dev, MCP23x17_IODIRA, &reg_value)) != 0) {
 		ESP_LOGE(__func__, "mcp23017_read8(): %d", err);
 		goto fail;
 	}
@@ -81,7 +77,7 @@ task_blink(void *pvParameters)
 	}
 	for (uint8_t pin = 0; pin <= 7; pin++) {
 		ESP_LOGI(__func__, "Set pin %d to OUTPUT", pin);
-		err = mcp23017_set_pin_direction(pin, OUTPUT);
+		err = mcp23017_set_pin_direction(dev, pin, OUTPUT);
 		if (err != 0) {
 			ESP_LOGE(__func__, "mcp23017_set_pin_direction(): %d", err);
 			goto fail;
@@ -92,7 +88,7 @@ task_blink(void *pvParameters)
 		level ^= 1;
 		for (uint8_t pin = 0; pin <= 7; pin++) {
 			vTaskDelay(500 / portTICK_PERIOD_MS);
-			err = mcp23017_set_pin_level(pin, level);
+			err = mcp23017_set_pin_level(dev, pin, level);
 			if (err != 0) {
 				ESP_LOGE(__func__, "mcp23017_set_pin_level(): %d", err);
 				goto fail;
@@ -100,7 +96,7 @@ task_blink(void *pvParameters)
 		}
 	}
 fail:
-	mcp23017_free();
+	free(dev);
 	ESP_LOGE(__func__, "Test failed.");
 	vTaskDelete(NULL);
 }
