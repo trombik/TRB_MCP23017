@@ -67,24 +67,26 @@ typedef struct mcp23017_dev_t
  * \brief Set directon of a PIN
  *
  * \param dev : device variable
+ * \param port : 0 (PORTA), or 1 (PORTB)
  * \param pin_num : Pin number, starting from zero (GPA0, or physical pin 21) to
  * 15 (GPB7, or physical pin 8).
  * \param directon : Direction of the pin, INPUT, INPUT_PULLUP, or OUTPUT.
  * \return zero on success, non-zero on failure
  */
 int32_t
-mcp23017_set_pin_direction(const mcp23017_dev_t *dev, const uint8_t pin_num, const uint8_t direction);
+mcp23017_set_pin_direction(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num, const uint8_t direction);
 
 /*
  * \brief Set level of a pin
  *
  * \param dev : device variable
+ * \param port : 0 (PORTA), or 1 (PORTB)
  * \param pin_num : Pin number, starting from zero to 15.
  * \param level : HIGH or LOW.
  * \return zero on success, non-zero on failure.
  */
 int32_t
-mcp23017_set_pin_level(const mcp23017_dev_t *dev, const uint8_t pin_num, const uint8_t level);
+mcp23017_set_pin_level(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num, const uint8_t level);
 
 /*
  * \brief Configure intrrupt of a pin
@@ -102,7 +104,7 @@ mcp23017_set_pin_level(const mcp23017_dev_t *dev, const uint8_t pin_num, const u
  * I2C failures
  */
 int32_t
-mcp23017_enable_pin_intrrupt(const mcp23017_dev_t *dev, const uint8_t pin_num, const uint8_t default_value, const mcp_int_condition_t condition);
+mcp23017_enable_pin_intrrupt(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num, const uint8_t default_value, const mcp_int_condition_t condition);
 
 /*
  * \brief Set a bit on a register
@@ -134,19 +136,21 @@ mcp23017_get_bit(const mcp23017_dev_t *dev, const uint8_t reg, uint8_t *value, c
  * \brief Disable pullup on a pin
  *
  * \param dev : device variable
+ * \param port : 0 (PORTA), or 1 (PORTB)
  * \param pin_num : Pin number
  */
 int32_t
-mcp23017_disable_pullup(const mcp23017_dev_t *dev, const uint8_t pin_num);
+mcp23017_disable_pullup(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num);
 
 /*
  * \brief Enable pullup on a pin
  *
  * \param dev : device variable
+ * \param port : 0 (PORTA), or 1 (PORTB)
  * \param pin_num : Pin number
  */
 int32_t
-mcp23017_enable_pullup(const mcp23017_dev_t *dev, const uint8_t pin_num);
+mcp23017_enable_pullup(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num);
 
 /*
  * \brief Read a byte from a register

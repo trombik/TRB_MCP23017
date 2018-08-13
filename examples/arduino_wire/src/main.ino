@@ -8,6 +8,8 @@
 #endif
 
 #include <TRB_MCP23017.h>
+#define PORT_A 0
+#define PORT_B 1
 
 mcp23017_i2c_config_t config;
 mcp23017_dev_t *dev;
@@ -105,7 +107,7 @@ setup()
 		halt();
 	}
 
-	Serial.println(F("Set all pins on PORTA as OUTPUT"));
+	Serial.println(F("Set all pins on PORT_A as OUTPUT"));
 	if ((err = mcp23017_write8(dev, MCP23x17_IODIRA, 0x00)) != 0) {
 		Serial.print(F("mcp23017_write8(): "));
 		Serial.println(err);
@@ -121,7 +123,7 @@ setup()
 	}
 
 	Serial.println(F("Set direction on PORTB INPUT_PULLUP"));
-	if ((err = mcp23017_set_pin_direction(dev, PORTB_INT_PIN + 8, INPUT_PULLUP))
+	if ((err = mcp23017_set_pin_direction(dev, PORT_B, PORTB_INT_PIN, INPUT_PULLUP))
 	    != 0) {
 		Serial.print(F("mcp23017_set_pin_direction(): "));
 		Serial.println(err);
@@ -129,7 +131,7 @@ setup()
 	}
 
 	Serial.println(F("Configure PORTB_INT_PIN on PORTB to generate INT"));
-	if ((err = mcp23017_enable_pin_intrrupt(dev, PORTB_INT_PIN + 8, HIGH,
+	if ((err = mcp23017_enable_pin_intrrupt(dev, PORT_B, PORTB_INT_PIN, HIGH,
 	    ON_CHANGE_FROM_REG)) != 0) {
 		Serial.print(F("mcp23017_enable_pin_intrrupt(): "));
 		Serial.println(err);

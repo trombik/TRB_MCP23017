@@ -41,10 +41,14 @@ bit_write8(const uint8_t old, const uint8_t pos, const uint8_t value)
 }
 
 int32_t
-mcp23017_set_pin_direction(const mcp23017_dev_t *dev, const uint8_t pin_num, const uint8_t direction)
+mcp23017_set_pin_direction(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num, const uint8_t direction)
 {
 	int32_t r;
-	uint8_t reg, value, pos, enable_pullup;
+	uint8_t reg, value, enable_pullup;
+	if (port > 1) {
+		r = EINVAL;
+		goto fail;
+	}
 
 	enable_pullup = 0;
 	switch (direction) {
@@ -62,13 +66,12 @@ mcp23017_set_pin_direction(const mcp23017_dev_t *dev, const uint8_t pin_num, con
 		goto fail;
 	}
 
-	reg = pin_num < 8 ? MCP23x17_IODIR : MCP23x17_IODIR + 1;
-	pos = pin_num < 8 ? pin_num : pin_num - 8;
-	if ((r = mcp23017_set_bit(dev, reg, value, pos)) != 0) {
+	reg = MCP23x17_IODIR + port;
+	if ((r = mcp23017_set_bit(dev, reg, value, pin_num)) != 0) {
 		goto fail;
 	}
 	if (enable_pullup == 1) {
-		if ((r = mcp23017_enable_pullup(dev, pin_num)) != 0) {
+		if ((r = mcp23017_enable_pullup(dev, port, pin_num)) != 0) {
 			goto fail;
 		}
 	}
@@ -77,20 +80,23 @@ fail:
 }
 
 int32_t
-mcp23017_set_pin_level(const mcp23017_dev_t *dev, const uint8_t pin_num, const uint8_t level)
+mcp23017_set_pin_level(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num, const uint8_t level)
 {
 	int32_t r;
-	uint8_t reg, pos, old, new_value;
+	uint8_t reg, old, new_value;
 	if (level != LOW && level != HIGH) {
 		r = EINVAL;
 		goto fail;
 	}
-	reg = pin_num < 8 ? MCP23x17_OLAT : MCP23x17_OLAT + 1;
-	pos = pin_num < 8 ? pin_num : pin_num - 8;
+	if (port > 1) {
+		r = EINVAL;
+		goto fail;
+	}
+	reg = MCP23x17_OLAT + port;
 	if ((r = mcp23017_read8(dev, reg, &old)) != 0) {
 		goto fail;
 	}
-	new_value = bit_write8(old, pos, level);
+	new_value = bit_write8(old, pin_num, level);
 	if (new_value != old) {
 		if ((r = mcp23017_write8(dev, reg, new_value)) != 0)
 			goto fail;
@@ -100,31 +106,30 @@ fail:
 }
 
 int32_t
-mcp23017_enable_pin_intrrupt(const mcp23017_dev_t *dev, const uint8_t pin_num, const uint8_t default_value, const mcp_int_condition_t condition)
+mcp23017_enable_pin_intrrupt(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num, const uint8_t default_value, const mcp_int_condition_t condition)
 {
-	uint8_t reg, pos;
+	uint8_t reg;
 	int32_t r;
-	if (pin_num > 15 || default_value > 1) {
+	if (pin_num > 8 || default_value > 1 || port > 1) {
 		r = EINVAL;
 		goto fail;
 	}
 
 	/* set default_value */
-	pos = pin_num < 8 ? pin_num : pin_num - 8;
-	reg = pin_num < 8 ? MCP23x17_DEFVAL : MCP23x17_DEFVAL + 1;
-	if ((r = mcp23017_set_bit(dev, reg, default_value, pos)) != 0) {
+	reg = MCP23x17_DEFVAL + port;
+	if ((r = mcp23017_set_bit(dev, reg, default_value, pin_num)) != 0) {
 		goto fail;
 	}
 
 	/* set condition */
-	reg = pin_num < 8 ? MCP23x17_INTCON : MCP23x17_INTCON + 1;
-	if ((r = mcp23017_set_bit(dev, reg, condition, pos)) != 0) {
+	reg = MCP23x17_INTCON + port;
+	if ((r = mcp23017_set_bit(dev, reg, condition, pin_num)) != 0) {
 		goto fail;
 	}
 
 	/* enable intrrupt */
-	reg = pin_num < 8 ? MCP23x17_GPINTEN : MCP23x17_GPINTEN + 1;
-	if ((r = mcp23017_set_bit(dev, reg, condition, pos)) != 0) {
+	reg = MCP23x17_GPINTEN + port;
+	if ((r = mcp23017_set_bit(dev, reg, condition, pin_num)) != 0) {
 		goto fail;
 	}
 fail:
@@ -177,14 +182,13 @@ fail:
 }
 
 static int32_t
-mcp23017_set_pullup_value(const mcp23017_dev_t *dev, const uint8_t pin_num, const uint8_t value)
+mcp23017_set_pullup_value(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num, const uint8_t value)
 {
 	int32_t r;
-	uint8_t reg, pos;
-	reg = (pin_num < 8) ? MCP23x17_GPPU : MCP23x17_GPPU + 1;
-	pos = (pin_num < 8) ? pin_num : pin_num - 8;
+	uint8_t reg;
+	reg = MCP23x17_GPPU + port;
 
-	if ((r = mcp23017_set_bit(dev, reg, value & 1, pos)) != 0) {
+	if ((r = mcp23017_set_bit(dev, reg, value & 1, pin_num)) != 0) {
 		goto fail;
 	}
 fail:
@@ -197,9 +201,9 @@ fail:
  * \param pin_num : Pin number
  */
 int32_t
-mcp23017_disable_pullup(const mcp23017_dev_t *dev, const uint8_t pin_num)
+mcp23017_disable_pullup(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num)
 {
-	return mcp23017_set_pullup_value(dev, pin_num, 0);
+	return mcp23017_set_pullup_value(dev, port, pin_num, 0);
 }
 
 /*
@@ -208,9 +212,9 @@ mcp23017_disable_pullup(const mcp23017_dev_t *dev, const uint8_t pin_num)
  * \param pin_num : Pin number
  */
 int32_t
-mcp23017_enable_pullup(const mcp23017_dev_t *dev, const uint8_t pin_num)
+mcp23017_enable_pullup(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num)
 {
-	return mcp23017_set_pullup_value(dev, pin_num, 1);
+	return mcp23017_set_pullup_value(dev, port, pin_num, 1);
 }
 
 #if defined(__cplusplus)
