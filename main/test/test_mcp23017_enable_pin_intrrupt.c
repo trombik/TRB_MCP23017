@@ -77,3 +77,41 @@ TEST_CASE("when_mcp23017_write8_failed_THEN_returns_non_zero", component)
 
 	my_teardown();
 }
+
+TEST_CASE("when_pin_is_invalid_THEN_returns_EINVAL", component)
+{
+	my_setup();
+
+	/* given the target bit has not been set */
+	faked_reg_value = 0b11110000;
+	faked_return_value = 0;
+ 	mcp23017_read8_fake.custom_fake = mcp23017_read8_fake_custom_fake;
+	uint8_t invalid = 8;
+
+	/* when pin number is invalid */
+	err = mcp23017_enable_pin_intrrupt(dev, PORTB, invalid, HIGH, ON_CHANGE_FROM_REG);
+
+	/* then returns EINVAL */
+	TEST_ASSERT_EQUAL_INT32(EINVAL, err);
+
+	my_teardown();
+}
+
+TEST_CASE("when_pin_is_invalid_THEN_returns_EINVAL", component)
+{
+	my_setup();
+
+	/* given the target bit has not been set */
+	faked_reg_value = 0b11110000;
+	faked_return_value = 0;
+ 	mcp23017_read8_fake.custom_fake = mcp23017_read8_fake_custom_fake;
+	uint8_t invalid = 2;
+
+	/* when mcp23017_write8() fails */
+	err = mcp23017_enable_pin_intrrupt(dev, invalid, 1, HIGH, ON_CHANGE_FROM_REG);
+
+	/* then returns EINVAL */
+	TEST_ASSERT_EQUAL_INT32(EINVAL, err);
+
+	my_teardown();
+}

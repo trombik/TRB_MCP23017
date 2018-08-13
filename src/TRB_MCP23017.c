@@ -110,7 +110,7 @@ mcp23017_enable_pin_intrrupt(const mcp23017_dev_t *dev, const uint8_t port, cons
 {
 	uint8_t reg;
 	int32_t r;
-	if (pin_num > 8 || default_value > 1 || port > 1) {
+	if (pin_num >= 8 || default_value > 1 || port > 1) {
 		r = EINVAL;
 		goto fail;
 	}
@@ -222,7 +222,7 @@ mcp23017_flip_pin(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t p
 {
 	int32_t r;
 	uint8_t reg_value;
-	if (port > 1 || pin_num > 8) {
+	if (port > 1 || pin_num >= 8) {
 		r = EINVAL;
 		goto fail;
 	}
