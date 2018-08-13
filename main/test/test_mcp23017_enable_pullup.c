@@ -5,6 +5,8 @@
 #include "shared_fakes.h"
 
 #include <TRB_MCP23017.h>
+#define PORTA 0
+#define PORTB 1
 
 static char component[] = "[TRB_MCP23017][mcp23017_enable_pullup]";
 int32_t err, faked_return_valu;
@@ -24,7 +26,7 @@ TEST_CASE("when_pullup_a_pin_THEN_write_1_to_GPPU", component)
  	mcp23017_read8_fake.custom_fake = mcp23017_read8_fake_custom_fake;
 
 	/* when pin 1, or IO1, is enabled */
-	err = mcp23017_enable_pullup(dev, 1);
+	err = mcp23017_enable_pullup(dev, PORTA, 1);
 
 
 	/* then it writes 1 to GPPUA[1] */
@@ -45,7 +47,7 @@ TEST_CASE("when_pin_is_on_B_then_register_is_MCP23x17_GPPUB", component)
  	mcp23017_read8_fake.custom_fake = mcp23017_read8_fake_custom_fake;
 
 	/* when pin 8, or IO0 on PORTB, is enabled */
-	err = mcp23017_enable_pullup(dev, 8);
+	err = mcp23017_enable_pullup(dev, PORTB, 0);
 
 
 	/* then it writes 1 to GPPUB[0] */
@@ -66,7 +68,7 @@ TEST_CASE("when_requested_value_has_been_set_THEN_does_not_call_mcp23017_write8"
  	mcp23017_read8_fake.custom_fake = mcp23017_read8_fake_custom_fake;
 
 	/* when pullup for pin 0 is requested */
-	err = mcp23017_enable_pullup(dev, 0);
+	err = mcp23017_enable_pullup(dev, PORTA, 0);
 
 	/* then mcp23017_write8() is not called */
 	TEST_ASSERT_EQUAL_INT32(0, err);
@@ -83,7 +85,7 @@ TEST_CASE("when_mcp23017_read8_failed_THEN_returns_non_zero", component)
 	faked_reg_value = 0xff;
 	faked_return_value = -1;
 	mcp23017_read8_fake.custom_fake = mcp23017_read8_fake_custom_fake;
-	err = mcp23017_enable_pullup(dev, 1);
+	err = mcp23017_enable_pullup(dev, PORTA, 1);
 
 	/* then returns non-zero */
 	TEST_ASSERT_EQUAL_INT32(-1, err);
@@ -100,7 +102,7 @@ TEST_CASE("when_mcp23017_write8_failed_THEN_returns_non_zero", component)
 	faked_return_value = 0;
 	mcp23017_read8_fake.custom_fake = mcp23017_read8_fake_custom_fake;
 	mcp23017_write8_fake.return_val = -1;
-	err = mcp23017_enable_pullup(dev, 1);
+	err = mcp23017_enable_pullup(dev, PORTA, 1);
 
 	/* then returns non-zero */
 	TEST_ASSERT_EQUAL_INT32(-1, err);

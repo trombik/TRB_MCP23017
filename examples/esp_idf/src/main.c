@@ -11,6 +11,8 @@
 #include <TRB_MCP23017.h>
 
 #define DONTCARE_ZERO   (0)
+#define PORTA 0
+#define PORTB 1
 
 int32_t
 i2c_init(const mcp23017_i2c_config_t config)
@@ -77,7 +79,7 @@ task_blink(void *pvParameters)
 	}
 	for (uint8_t pin = 0; pin <= 7; pin++) {
 		ESP_LOGI(__func__, "Set pin %d to OUTPUT", pin);
-		err = mcp23017_set_pin_direction(dev, pin, OUTPUT);
+		err = mcp23017_set_pin_direction(dev, PORTA, pin, OUTPUT);
 		if (err != 0) {
 			ESP_LOGE(__func__, "mcp23017_set_pin_direction(): %d", err);
 			goto fail;
@@ -88,7 +90,7 @@ task_blink(void *pvParameters)
 		level ^= 1;
 		for (uint8_t pin = 0; pin <= 7; pin++) {
 			vTaskDelay(500 / portTICK_PERIOD_MS);
-			err = mcp23017_set_pin_level(dev, pin, level);
+			err = mcp23017_set_pin_level(dev, PORTA, pin, level);
 			if (err != 0) {
 				ESP_LOGE(__func__, "mcp23017_set_pin_level(): %d", err);
 				goto fail;

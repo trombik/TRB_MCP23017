@@ -6,6 +6,9 @@
 
 #include <TRB_MCP23017.h>
 
+#define PORTA 0
+#define PORTB 1
+
 static char component[] = "[TRB_MCP23017][mcp23017_set_pin_direction]";
 int32_t r, faked_return_value;
 uint8_t faked_reg_value;
@@ -19,7 +22,7 @@ TEST_CASE("when_direction_is_invalid_THEN_returns_EINVAL", component)
 	my_setup();
 
 	/* when direction is invalid */
-	r = mcp23017_set_pin_direction(dev, 1, 0xff);
+	r = mcp23017_set_pin_direction(dev, PORTA, 1, 0xff);
 
 	/* returns EINVAL */
 	TEST_ASSERT_EQUAL_INT32(EINVAL, r);
@@ -32,11 +35,11 @@ TEST_CASE("when_direction_is_valid_THEN_returns_zero", component)
 	my_setup();
 
 	/* when argument is one of HIGH, LOW, and INPUT_PULLUP, returns zero */
-	r = mcp23017_set_pin_direction(dev, 1, HIGH);
+	r = mcp23017_set_pin_direction(dev, PORTA, 1, HIGH);
 	TEST_ASSERT_EQUAL_INT32(0, r);
-	r = mcp23017_set_pin_direction(dev, 1, LOW);
+	r = mcp23017_set_pin_direction(dev, PORTA, 1, LOW);
 	TEST_ASSERT_EQUAL_INT32(0, r);
-	r = mcp23017_set_pin_direction(dev, 1, INPUT_PULLUP);
+	r = mcp23017_set_pin_direction(dev, PORTA, 1, INPUT_PULLUP);
 	TEST_ASSERT_EQUAL_INT32(0, r);
 
 	my_teardown();
@@ -51,7 +54,7 @@ TEST_CASE("when_pin_1_is_set_as_output_THEN_sets_zero_bit_in_MCP23x17_IODIRA", c
 	mcp23017_read8_fake.custom_fake = mcp23017_read8_fake_custom_fake;
 
 	/* when called to set pin 1 as output */
-	r = mcp23017_set_pin_direction(dev, 1, OUTPUT);
+	r = mcp23017_set_pin_direction(dev, PORTA, 1, OUTPUT);
 
 	/* then, clear IO1 bit in MCP23x17_IODIRA */
 	TEST_ASSERT_EQUAL_UINT32(0, r);
@@ -70,7 +73,7 @@ TEST_CASE("when_pin_8_is_set_as_output_THEN_sets_zero_bit_in_MCP23x17_IODIRB", c
 	mcp23017_read8_fake.custom_fake = mcp23017_read8_fake_custom_fake;
 
 	/* when called to set pin 8 as output */
-	r = mcp23017_set_pin_direction(dev, 10, OUTPUT);
+	r = mcp23017_set_pin_direction(dev, PORTB, 2, OUTPUT);
 
 	/* then, clear IO0 bit in MCP23x17_IODIRB */
 	TEST_ASSERT_EQUAL_UINT32(0, r);
