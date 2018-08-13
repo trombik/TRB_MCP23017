@@ -10,10 +10,11 @@
 #include <TRB_MCP23017.h>
 
 mcp23017_i2c_config_t config;
+mcp23017_dev_t *dev;
 uint8_t level = 0;
-int32_t err;
-volatile uint8_t pin_changed = 0;
 uint8_t reg_value;
+volatile uint8_t pin_changed = 0;
+int32_t err;
 
 void
 delay_ms(const uint16_t milli)
@@ -77,27 +78,20 @@ setup()
 
 	config.scl = GPIO_SCL;
 	config.sda = GPIO_SDA;
-	config.address = MCP23017_I2C_ADDRESS_DEFAULT;
 	config.freq = 100;
-
-	Serial.println(F("Initializing driver."));
-	if ((err = mcp23017_init()) != 0) {
-		Serial.print(F("mcp23017_init(): "));
-		Serial.println(err);
+	dev = (mcp23017_dev_t*)calloc(1, sizeof(mcp23017_dev_t));
+	if (dev == NULL) {
+		Serial.println(F("Out of memory"));
 		halt();
 	}
-	Serial.println(F("Configuring driver."));
-	if ((err = mcp23017_set_i2c_config(&config)) != 0) {
-		Serial.print(F("mcp23017_set_i2c_config(): "));
-		Serial.println(err);
-		halt();
-	}
+	dev->i2c_config = &config;
+	dev->address = MCP23017_I2C_ADDRESS_DEFAULT;
 
 	/* reset the IC so that it is in Power on Reset state */
 	reset_ic();
 
 	Serial.println(F("Read IODIRA."));
-	if ((err = mcp23017_read8(MCP23x17_IODIRB, &reg_value)) != 0) {
+	if ((err = mcp23017_read8(dev, MCP23x17_IODIRB, &reg_value)) != 0) {
 		Serial.print(F("mcp23017_read8(): "));
 		Serial.println(err);
 		halt();
@@ -112,14 +106,14 @@ setup()
 	}
 
 	Serial.println(F("Set all pins on PORTA as OUTPUT"));
-	if ((err = mcp23017_write8(MCP23x17_IODIRA, 0x00)) != 0) {
+	if ((err = mcp23017_write8(dev, MCP23x17_IODIRA, 0x00)) != 0) {
 		Serial.print(F("mcp23017_write8(): "));
 		Serial.println(err);
 		halt();
 	}
 
 	Serial.println(F("Enable pullup for PORTB_INT_PIN on PORTB"));
-	if ((err = mcp23017_set_bit(MCP23x17_GPPUB, 1, PORTB_INT_PIN))
+	if ((err = mcp23017_set_bit(dev, MCP23x17_GPPUB, 1, PORTB_INT_PIN))
 	    != 0) {
 		Serial.print(F("mcp23017_set_bit(): "));
 		Serial.println(err);
@@ -127,7 +121,7 @@ setup()
 	}
 
 	Serial.println(F("Set direction on PORTB INPUT_PULLUP"));
-	if ((err = mcp23017_set_pin_direction(PORTB_INT_PIN + 8, INPUT_PULLUP))
+	if ((err = mcp23017_set_pin_direction(dev, PORTB_INT_PIN + 8, INPUT_PULLUP))
 	    != 0) {
 		Serial.print(F("mcp23017_set_pin_direction(): "));
 		Serial.println(err);
@@ -135,7 +129,7 @@ setup()
 	}
 
 	Serial.println(F("Configure PORTB_INT_PIN on PORTB to generate INT"));
-	if ((err = mcp23017_enable_pin_intrrupt(PORTB_INT_PIN + 8, HIGH,
+	if ((err = mcp23017_enable_pin_intrrupt(dev, PORTB_INT_PIN + 8, HIGH,
 	    ON_CHANGE_FROM_REG)) != 0) {
 		Serial.print(F("mcp23017_enable_pin_intrrupt(): "));
 		Serial.println(err);
@@ -156,8 +150,8 @@ loop() {
 		pin_changed = 0;
 		Serial.println("Pressed");
 	}
-	err = mcp23017_read8(MCP23x17_INTCAPB, &reg_value);
-	if ((err = mcp23017_read8(MCP23x17_OLATA, &reg_value)) != 0) {
+	err = mcp23017_read8(dev, MCP23x17_INTCAPB, &reg_value);
+	if ((err = mcp23017_read8(dev, MCP23x17_OLATA, &reg_value)) != 0) {
 		Serial.print(F("mcp23017_read8(): "));
 		Serial.println(err);
 		halt();
@@ -170,7 +164,7 @@ loop() {
 	} else {
 		reg_value = (reg_value << 1);
 	}
-	if ((err = mcp23017_write8(MCP23x17_OLATA, reg_value)) != 0) {
+	if ((err = mcp23017_write8(dev, MCP23x17_OLATA, reg_value)) != 0) {
 		Serial.print(F("mcp23017_write8(): "));
 		Serial.println(err);
 		halt();

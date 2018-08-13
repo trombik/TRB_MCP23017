@@ -48,53 +48,43 @@ typedef struct
 	uint8_t scl;
 	/** I2C SDA pin number */
 	uint8_t sda;
-	/** I2C address of the device */
-	uint8_t address;
 	/** I2C clock frequency in Khz (implementation varies depending on
-     * libraries. see mcp23017_read8) */
+	* libraries. see mcp23017_read8) */
 	uint16_t freq;
 	/** I2C port number (ESP32 only) */
 	uint8_t i2c_port;
 } mcp23017_i2c_config_t;
 
-
-/*
- * \brief Initialize the driver
- *
- * \return : zero on success. ENOMEM on out of memory.
- */
-int16_t
-mcp23017_init();
-
-/*
- * \brief Free the driver.
- */
-void
-mcp23017_free();
-
-int16_t
-mcp23017_set_i2c_config(const mcp23017_i2c_config_t *new_config);
+typedef struct mcp23017_dev_t
+{
+	/** I2C bus configuration */
+	mcp23017_i2c_config_t *i2c_config;
+	/** I2C address of the device */
+	uint8_t address;
+} mcp23017_dev_t;
 
 /*
  * \brief Set directon of a PIN
  *
+ * \param dev : device variable
  * \param pin_num : Pin number, starting from zero (GPA0, or physical pin 21) to
  * 15 (GPB7, or physical pin 8).
  * \param directon : Direction of the pin, INPUT, INPUT_PULLUP, or OUTPUT.
  * \return zero on success, non-zero on failure
  */
 int32_t
-mcp23017_set_pin_direction(const uint8_t pin_num, const uint8_t direction);
+mcp23017_set_pin_direction(const mcp23017_dev_t *dev, const uint8_t pin_num, const uint8_t direction);
 
 /*
  * \brief Set level of a pin
  *
+ * \param dev : device variable
  * \param pin_num : Pin number, starting from zero to 15.
  * \param level : HIGH or LOW.
  * \return zero on success, non-zero on failure.
  */
 int32_t
-mcp23017_set_pin_level(const uint8_t pin_num, const uint8_t level);
+mcp23017_set_pin_level(const mcp23017_dev_t *dev, const uint8_t pin_num, const uint8_t level);
 
 /*
  * \brief Configure intrrupt of a pin
@@ -103,6 +93,7 @@ mcp23017_set_pin_level(const uint8_t pin_num, const uint8_t level);
  * * Set intrrupt condition
  * * Enable intrrupt on the pin
  *
+ * \param dev : device variable
  * \param pin_num : Pin number between 0 and 15
  * \param default_value : default value to compare when interrupt-on-change
  * from register value is used
@@ -111,11 +102,12 @@ mcp23017_set_pin_level(const uint8_t pin_num, const uint8_t level);
  * I2C failures
  */
 int32_t
-mcp23017_enable_pin_intrrupt(const uint8_t pin_num, const uint8_t default_value, const mcp_int_condition_t condition);
+mcp23017_enable_pin_intrrupt(const mcp23017_dev_t *dev, const uint8_t pin_num, const uint8_t default_value, const mcp_int_condition_t condition);
 
 /*
  * \brief Set a bit on a register
  *
+ * \param dev : device variable
  * \param reg : Register address
  * \param value : 1 or 0.
  * \param pos : Bit position to set the value
@@ -123,10 +115,12 @@ mcp23017_enable_pin_intrrupt(const uint8_t pin_num, const uint8_t default_value,
  * failure.
  */
 int32_t
-mcp23017_set_bit(const uint8_t reg, const uint8_t value, const uint8_t pos);
+mcp23017_set_bit(const mcp23017_dev_t *dev, const uint8_t reg, const uint8_t value, const uint8_t pos);
 
 /*
  * \brief Get a bit of a register
+ *
+ * \param dev : device variable
  * \param reg : Register address
  * \param value : Variable to write the bit to
  * \param pos : Bit position to set the value
@@ -134,23 +128,25 @@ mcp23017_set_bit(const uint8_t reg, const uint8_t value, const uint8_t pos);
  * failure.
  */
 int32_t
-mcp23017_get_bit(const uint8_t reg, uint8_t *value, const uint8_t pos);
+mcp23017_get_bit(const mcp23017_dev_t *dev, const uint8_t reg, uint8_t *value, const uint8_t pos);
 
 /*
  * \brief Disable pullup on a pin
  *
+ * \param dev : device variable
  * \param pin_num : Pin number
  */
 int32_t
-mcp23017_disable_pullup(const uint8_t pin_num);
+mcp23017_disable_pullup(const mcp23017_dev_t *dev, const uint8_t pin_num);
 
 /*
  * \brief Enable pullup on a pin
  *
+ * \param dev : device variable
  * \param pin_num : Pin number
  */
 int32_t
-mcp23017_enable_pullup(const uint8_t pin_num);
+mcp23017_enable_pullup(const mcp23017_dev_t *dev, const uint8_t pin_num);
 
 /*
  * \brief Read a byte from a register
@@ -160,6 +156,7 @@ mcp23017_enable_pullup(const uint8_t pin_num);
  * `freq` in `mcp23017_i2c_config_t` is NOT used by the library except Brzo
  * I2C. It is the application code's responsibility to manage SCL frequency.
  *
+ * \param dev : device variable
  * \param reg : Register address
  * \param value : Variable to save the value from the register
  * \return zero on success, non-zero on failure
@@ -187,7 +184,7 @@ mcp23017_enable_pullup(const uint8_t pin_num);
  * with or without WITH_DYNAMIC_I2C_FREQ defined.
  */
 int32_t
-mcp23017_read8(const uint8_t reg, uint8_t *value);
+mcp23017_read8(const mcp23017_dev_t *dev, const uint8_t reg, uint8_t *value);
 
 /*
  * \brief Write a byte to a register
@@ -195,28 +192,7 @@ mcp23017_read8(const uint8_t reg, uint8_t *value);
  * \return zero on success, non-zero on failure
  */
 int32_t
-mcp23017_write8(const uint8_t reg, uint8_t value);
-
-/*
- * \brief Returns configured I2C address
- *
- * \return I2C address
- */
-uint8_t
-mcp23017_get_i2c_address();
-
-#if defined(TRB_MCP23017_ESP_IDF)
-/*
- * \brief Return I2C port number (ESP32 only)
- *
- * \return i2c_port_t number
- */
-i2c_port_t
-mcp23017_get_i2c_port();
-#endif
-
-uint16_t
-mcp23017_get_i2c_freq();
+mcp23017_write8(const mcp23017_dev_t *dev, const uint8_t reg, uint8_t value);
 
 #if defined(__cplusplus)
 }
