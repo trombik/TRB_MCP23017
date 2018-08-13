@@ -217,6 +217,25 @@ mcp23017_enable_pin_pullup(const mcp23017_dev_t *dev, const uint8_t port, const 
 	return mcp23017_set_pullup_value(dev, port, pin_num, 1);
 }
 
+int32_t
+mcp23017_flip_pin(const mcp23017_dev_t *dev, const uint8_t port, const uint8_t pin_num)
+{
+	int32_t r;
+	uint8_t reg_value;
+	if (port > 1 || pin_num > 8) {
+		r = EINVAL;
+		goto fail;
+	}
+	if ((r = mcp23017_get_bit(dev, MCP23x17_OLAT + port, &reg_value, pin_num)) != 0) {
+		goto fail;
+	}
+	if ((r = mcp23017_set_bit(dev, MCP23x17_OLAT + port, !reg_value, pin_num)) != 0) {
+		goto fail;
+	}
+fail:
+	return r;
+}
+
 #if defined(__cplusplus)
 }
 #endif
